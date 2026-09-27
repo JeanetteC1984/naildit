@@ -1,0 +1,17 @@
+# Render Blueprint — one Node web service that builds the storefront and serves it (plus Stripe checkout) from Express.
+# Secrets are NOT stored here: sync:false means Render asks for the value when the Blueprint is created.
+services:
+  - type: web
+    name: naildit-storefront
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: PUBLIC_SITE_URL
+        sync: false

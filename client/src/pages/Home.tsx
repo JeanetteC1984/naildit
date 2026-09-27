@@ -1,12 +1,23 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Heart, Sparkles, X } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
+import { BagDrawer, OrderConfirmation, useBag, type OrderSummary } from "@/components/BagDrawer";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const moods = [
   { name: "Wild for Wildflowers", kicker: "Bloom loud", text: "Hand-painted florals over hot pink, glitter accents included.", tone: "hot", product: "Wild for Wildflowers" },
   { name: "Love Letters", kicker: "Write it in red", text: "Romantic red with hand-stamped linework and a glitter accent nail.", tone: "plum", product: "Love Letters" },
   { name: "Golden Afternoon", kicker: "Catch the light", text: "Warm foil, chrome gold, and reflective florals for golden hour.", tone: "gold", product: "Golden Afternoon" },
 ];
+
+// Cover art for each collection card, by collection name. Kept here rather than in
+// ops-products.json so publishing from the Operations app doesn't drop them.
+const collectionCovers: Record<string, string> = {
+  "wild for wildflowers": "/collections/wildflowers-cover.png",
+  "love letters": "/collections/love-letters-cover.png",
+  "golden afternoon": "/collections/golden-afternoon-cover.png",
+  "halloween": "/collections/halloween-cover.png",
+};
 
 const products = [
   {
@@ -25,6 +36,21 @@ const products = [
     gallery: ["/products/golden-afternoon-box.png", "/products/golden-afternoon-1.png", "/products/golden-afternoon-2.png", "/products/golden-afternoon-3.png", "/products/golden-afternoon-4.png", "/products/golden-afternoon-5.png", "/products/golden-afternoon-6.png"],
   },
 ];
+
+// Accent colors come from the Operations app; lift very dark ones so product
+// names stay readable on the dark cards (keeps the hue, raises the lightness).
+function readableAccent(hex: string) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return hex;
+  let [r, g, b] = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16));
+  const lum = (x: number, y: number, z: number) => 0.2126 * x + 0.7152 * y + 0.0722 * z;
+  for (let t = 0; lum(r, g, b) < 110 && t < 12; t++) {
+    const max = Math.max(r, g, b, 1);
+    const k = Math.min(255 / max, 1.35);
+    [r, g, b] = [r, g, b].map((c) => Math.min(255, Math.round(c * k + (255 - c) * 0.08)));
+  }
+  return "#" + [r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("");
+}
 
 const galleryPhotos = [
   { src: "/gallery/gallery-1.png", alt: "Pink glitter press-on nails with hand-painted florals" },
@@ -88,19 +114,21 @@ function ProductCard({ product, onAdd, onOpen }: { product: typeof products[numb
       <span className="product-badge">{product.badge}</span>
       <button className="heart-button" aria-label={`Save ${product.name}`} onClick={(e) => e.stopPropagation()}><Heart size={17} /></button>
       <span className="image-caption">Press on. Stand out.</span>
-      <span className="view-more-hint">View gallery <ArrowUpRight size={14} /></span>
+      <span className="view-more-hint">View set <ArrowUpRight size={14} /></span>
     </div>
     <div className="product-info">
-      <div className="product-title-row"><h3>{product.name}</h3><span>{product.price}</span></div>
-      <p className="product-mood">{product.mood}</p>
+      <div className="product-title-row"><h3 style={{ color: readableAccent(product.accent), textShadow: `0 0 8px ${readableAccent(product.accent)}cc, 0 0 18px ${readableAccent(product.accent)}80` }}>{product.name}</h3><span>{product.price}</span></div>
+      <p className="product-mood">{product.mood} collection</p>
       <p className="product-detail">{product.detail}</p>
       <button className="add-button" onClick={(e) => { e.stopPropagation(); onAdd(product.name); }}>Add to bag <ArrowUpRight size={16} /></button>
     </div>
   </article>;
 }
 
-function QuickView({ product, onClose, onAdd }: { product: typeof products[number]; onClose: () => void; onAdd: (name: string) => void }) {
+function QuickView({ product, onClose, onAdd, onSwitch, onCollection }: { product: typeof products[number]; onClose: () => void; onAdd: (name: string) => void; onSwitch: (p: Product) => void; onCollection: () => void }) {
   const [index, setIndex] = useState(0);
+  useEffect(() => setIndex(0), [product]);
+  const siblings = products.filter((p) => p.mood.toLowerCase() === product.mood.toLowerCase() && p.name !== product.name);
   const gallery = Array.from(new Set([product.image, ...product.gallery]));
   const go = (delta: number) => setIndex((i) => (i + delta + gallery.length) % gallery.length);
 
@@ -116,13 +144,104 @@ function QuickView({ product, onClose, onAdd }: { product: typeof products[numbe
         </div>
         <div className="quickview-copy">
           <span className="product-badge">{product.badge}</span>
-          <h2 style={{ color: product.accent, textShadow: `0 0 10px ${product.accent}cc, 0 0 24px ${product.accent}80` }}>{product.name}</h2>
-          <p className="product-mood">{product.mood}</p>
+          <h2 style={{ color: readableAccent(product.accent), textShadow: `0 0 10px ${readableAccent(product.accent)}cc, 0 0 24px ${readableAccent(product.accent)}80` }}>{product.name}</h2>
+          <button className="quickview-collection" onClick={onCollection}>Part of the {product.mood} collection <ChevronRight size={14} /></button>
           <p className="quickview-description">{product.description}</p>
           <div className="hero-proof"><span>30 nails</span><span>12 sizes</span><span>0 boring details</span></div>
           <div className="quickview-bottom"><span className="quickview-price">{product.price}</span><button className="primary-button" onClick={() => onAdd(product.name)}>Add to bag <ArrowUpRight size={18} /></button></div>
+          {siblings.length > 0 && <div className="quickview-siblings"><p className="eyebrow">More in this collection</p><div>{siblings.map((p) => <button key={p.name} onClick={() => onSwitch(p)} aria-label={`View ${p.name}`}><img src={p.image} alt="" /><span>{p.name}</span></button>)}</div></div>}
         </div>
       </div>
+    </div>
+  </div>;
+}
+
+type Product = typeof products[number];
+type Mood = typeof moods[number];
+
+// Each answer adds a point to the collections it fits; the highest score among
+// collections that actually have sets in the shop wins.
+const quizQuestions = [
+  { q: <>Which set feels like <em>you</em> today?</>, options: [
+    { label: "I’m blooming loud", picks: ["Wild for Wildflowers"] },
+    { label: "I’m feeling romantic", picks: ["Love Letters"] },
+    { label: "I want warm and golden", picks: ["Golden Afternoon"] },
+    { label: "Something a little spooky", picks: ["Halloween"] },
+  ] },
+  { q: <>Where are these nails <em>going first?</em></>, options: [
+    { label: "Brunch or a garden party", picks: ["Wild for Wildflowers"] },
+    { label: "Date night", picks: ["Love Letters"] },
+    { label: "A cozy fall weekend", picks: ["Golden Afternoon"] },
+    { label: "A costume party", picks: ["Halloween"] },
+  ] },
+  { q: <>Pick a <em>palette.</em></>, options: [
+    { label: "Hot pink and brights", picks: ["Wild for Wildflowers"] },
+    { label: "Ruby red and blush", picks: ["Love Letters"] },
+    { label: "Gold, amber, and rust", picks: ["Golden Afternoon"] },
+    { label: "Black, orange, and neon", picks: ["Halloween"] },
+  ] },
+  { q: <>Your dream <em>finish?</em></>, options: [
+    { label: "Glitter, obviously", picks: ["Wild for Wildflowers", "Halloween"] },
+    { label: "Glossy and classic", picks: ["Love Letters"] },
+    { label: "Chrome and foil", picks: ["Golden Afternoon"] },
+    { label: "Moody and dramatic", picks: ["Halloween", "Love Letters"] },
+  ] },
+  { q: <>Choose your <em>word.</em></>, options: [
+    { label: "Playful", picks: ["Wild for Wildflowers"] },
+    { label: "Sweet", picks: ["Love Letters"] },
+    { label: "Cozy", picks: ["Golden Afternoon"] },
+    { label: "Mysterious", picks: ["Halloween"] },
+  ] },
+];
+
+function Quiz({ collections, setsIn, onClose, onShop }: { collections: Mood[]; setsIn: (m: Mood) => Product[]; onClose: () => void; onShop: (m: Mood) => void }) {
+  const [answers, setAnswers] = useState<string[][]>([]);
+  const step = answers.length;
+  const done = step >= quizQuestions.length;
+  let match: Mood | null = null;
+  if (done) {
+    const score = new Map<string, number>();
+    answers.flat().forEach((name) => score.set(name.toLowerCase(), (score.get(name.toLowerCase()) ?? 0) + 1));
+    match = collections.filter((m) => setsIn(m).length > 0).sort((a, b) => (score.get(b.name.toLowerCase()) ?? 0) - (score.get(a.name.toLowerCase()) ?? 0))[0] ?? null;
+  }
+  const matchCount = match ? setsIn(match).length : 0;
+  return <div className="modal-backdrop" onClick={onClose}><div className="quiz-modal" onClick={(e) => e.stopPropagation()}><button className="modal-close" onClick={onClose}><X size={20} /></button>
+    {!done ? <>
+      <p className="eyebrow">Find your vibe · {step + 1} of {quizQuestions.length}</p>
+      <div className="quiz-progress"><span style={{ width: `${(step / quizQuestions.length) * 100}%` }} /></div>
+      <h2>{quizQuestions[step].q}</h2>
+      <p>{step === 0 ? "Five quick questions and we’ll point you toward a very good decision." : "No wrong answers, only better nails."}</p>
+      <div className="quiz-options">{quizQuestions[step].options.map((o) => <button key={o.label} onClick={() => setAnswers([...answers, o.picks])}>{o.label} <ArrowUpRight size={17} /></button>)}</div>
+      {step > 0 && <button className="quiz-back" onClick={() => setAnswers(answers.slice(0, -1))}><ChevronLeft size={15} /> Back</button>}
+    </> : match ? <>
+      <p className="eyebrow">Your Nail’d It! match</p>
+      <h2>You’re giving <em>{match.name}.</em></h2>
+      <p>{match.text} {matchCount} {matchCount === 1 ? "set" : "sets"} in this collection.</p>
+      <div className="hero-actions"><button className="primary-button" onClick={() => onShop(match!)}>Shop my collection <ArrowUpRight size={18} /></button><button className="secondary-button" onClick={() => setAnswers([])}>Retake</button></div>
+    </> : <><h2>Every set is <em>you.</em></h2><button className="primary-button" onClick={onClose}>Browse all sets <ArrowUpRight size={18} /></button></>}
+  </div></div>;
+}
+
+function CollectionView({ collection, sets, onClose, onAdd, onOpenSet }: { collection: Mood; sets: Product[]; onClose: () => void; onAdd: (name: string) => void; onOpenSet: (p: Product) => void }) {
+  return <div className="modal-backdrop" onClick={onClose}>
+    <div className="collection-modal" onClick={(e) => e.stopPropagation()}>
+      <button className="modal-close" onClick={onClose}><X size={20} /></button>
+      <div className="collection-modal-head">
+        <p className="eyebrow">{collection.kicker} · {sets.length} {sets.length === 1 ? "set" : "sets"}</p>
+        <h2>The <em>{collection.name}</em> collection</h2>
+        <p>{collection.text}</p>
+      </div>
+      <div className="collection-sets">{sets.map((p) => <article key={p.name} className="collection-set">
+        <button className="collection-set-image" style={{ background: `radial-gradient(circle at 30% 20%, ${p.accent}99, transparent 45%), #18151b` }} onClick={() => onOpenSet(p)} aria-label={`View ${p.name} photos`}>
+          <img src={p.image} alt={`${p.name} press-on nails`} />
+          <span className="product-badge">{p.badge}</span>
+          <span className="view-more-hint">{Array.from(new Set([p.image, ...p.gallery])).length} photos <ArrowUpRight size={14} /></span>
+        </button>
+        <div className="product-title-row"><h3 style={{ color: readableAccent(p.accent), textShadow: `0 0 8px ${readableAccent(p.accent)}cc, 0 0 18px ${readableAccent(p.accent)}80` }}>{p.name}</h3><span>{p.price}</span></div>
+        <p className="product-detail">{p.detail}</p>
+        <button className="add-button" onClick={() => onAdd(p.name)}>Add to bag <ArrowUpRight size={16} /></button>
+      </article>)}</div>
+      {sets.length === 0 && <div className="empty-state">New sets for this collection are on the way.</div>}
     </div>
   </div>;
 }
@@ -139,7 +258,7 @@ function mergeOpsCatalog(catalog: { products?: typeof products; moods?: typeof m
   }
   for (const m of catalog.moods ?? []) {
     const i = moods.findIndex((x) => x.name === m.name);
-    if (i >= 0) moods[i] = m; else moods.push(m);
+    if (i >= 0) moods[i] = { ...moods[i], ...m }; else moods.push(m);
   }
 }
 
@@ -153,7 +272,7 @@ export default function Home() {
   }, []);
   const [activeMood, setActiveMood] = useState("All sets");
   const [quizOpen, setQuizOpen] = useState(false);
-  const [quizStep, setQuizStep] = useState(0);
+  const [openCollection, setOpenCollection] = useState<Mood | null>(null);
   const [toast, setToast] = useState("");
   const [quickViewProduct, setQuickViewProduct] = useState<typeof products[number] | null>(null);
   const [flippedMoods, setFlippedMoods] = useState<Set<string>>(new Set());
@@ -162,6 +281,37 @@ export default function Home() {
   const [customFinish, setCustomFinish] = useState("Glossy");
   const [customColor, setCustomColor] = useState("Hot Pink");
   const [customNote, setCustomNote] = useState("");
+  const bag = useBag();
+  const [bagOpen, setBagOpen] = useState(false);
+  const [order, setOrder] = useState<OrderSummary | "loading" | null>(null);
+
+  // Arriving from another page via a "/#section" link: the section didn't exist
+  // yet when the browser tried to jump to it, so scroll once it has rendered.
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (id) document.getElementById(id)?.scrollIntoView({ behavior: "instant" });
+  }, []);
+
+  // Coming back from Stripe Checkout: ?checkout=success&session_id=… or ?checkout=cancelled
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("checkout");
+    if (!status) return;
+    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    if (status === "cancelled") {
+      setToast("Checkout cancelled — your bag is right where you left it.");
+      setBagOpen(true);
+      return;
+    }
+    const sessionId = params.get("session_id");
+    if (status !== "success" || !sessionId) return;
+    bag.clear();
+    setOrder("loading");
+    fetch(`/api/checkout/session?id=${encodeURIComponent(sessionId)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((summary: OrderSummary) => setOrder(summary))
+      .catch(() => setOrder({ paid: false, email: null, total: null, items: [] }));
+  }, []);
 
   const visibleProducts = useMemo(() => activeMood === "All sets" ? products : products.filter((p) => p.mood.toLowerCase() === activeMood.toLowerCase()), [activeMood, catalogVersion]);
   const publishedPhotos = useMemo(() => {
@@ -173,12 +323,18 @@ export default function Home() {
     }
     return Array.from(photos.values());
   }, [catalogVersion]);
-  const findMoodProduct = (name: string) => products.find((product) => product.name.toLowerCase() === name.toLowerCase()) ?? products.find((product) => product.mood.toLowerCase() === name.toLowerCase());
-  const addToBag = (name: string) => { setToast(`${name} is in your bag. Your vibe is officially in motion.`); window.setTimeout(() => setToast(""), 3200); };
+  const addToBag = (name: string) => {
+    const product = products.find((p) => p.name === name);
+    if (!product) return;
+    bag.add({ id: product.name, name: product.name, price: Number(product.price.replace(/[^0-9.]/g, "")), image: product.image });
+    setToast(`${name} is in your bag. Your vibe is officially in motion.`);
+    window.setTimeout(() => setToast(""), 3200);
+  };
   const toggleFlip = (name: string) => setFlippedMoods((prev) => { const next = new Set(prev); next.has(name) ? next.delete(name) : next.add(name); return next; });
-  const openGallery = (moodProduct: string) => { const p = findMoodProduct(moodProduct); if (p) setQuickViewProduct(p); };
+  const setsIn = (m: Mood) => products.filter((p) => p.mood.toLowerCase() === m.name.toLowerCase());
   const submitCustom = (e: FormEvent) => {
     e.preventDefault();
+    bag.add({ id: `custom-${Date.now()}`, name: "Custom Set", price: 22, custom: { shape: customShape, finish: customFinish, color: customColor, note: customNote } });
     setToast(`Custom ${customShape} · ${customFinish} · ${customColor} set added to your bag — $22.00. We'll follow up to confirm the details.`);
     window.setTimeout(() => setToast(""), 3800);
     setCustomNote("");
@@ -191,7 +347,7 @@ export default function Home() {
       <nav className="main-nav">
         <a href="#shop">Shop by vibe</a><a href="#collection">All sets</a><a href="#custom">Custom order</a><a href="#ritual">The ritual</a><a href="#gallery">Gallery</a><a href="#story">Our story</a>
       </nav>
-      <div className="header-actions"><button className="bag-button" onClick={() => setToast("Your bag is looking a little quiet — start with a vibe.")}>Bag <span>0</span></button></div>
+      <div className="header-actions"><button className="bag-button" onClick={() => setBagOpen(true)} aria-label={`Open bag, ${bag.count} ${bag.count === 1 ? "item" : "items"}`}>Bag <span>{bag.count}</span></button></div>
     </header>
 
     <main id="top">
@@ -203,34 +359,38 @@ export default function Home() {
           <div className="hero-actions"><a className="primary-button" href="#shop">Shop by vibe <ArrowDownRight size={18} /></a><button className="secondary-button" onClick={() => setQuizOpen(true)}>Find my set <Sparkles size={17} /></button></div>
           <div className="hero-proof"><span>30 nails</span><span>12 sizes</span><span>0 boring details</span></div>
         </div>
-        <div className="hero-art"><div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-image"><img src="/wildflower-hero.png" alt="Pink glitter press-on nails with hand-painted floral accents" /></div><div className="hero-note"><strong>Current vibe</strong><b>Impossible<br />to ignore.</b></div><div className="hero-sticker"><img src="/hero-badge-new.png" alt="" /></div></div>
+        <div className="hero-art"><div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-image"><img src="/wildflower-hero.png" alt="Pink glitter press-on nails with hand-painted floral accents" /></div><div className="hero-note"><strong>Current vibe</strong><b>Impossible<br />to ignore.</b></div><div className="hero-sticker"><img src="/logo-polish-duo.webp" alt="" /></div></div>
       </section>
 
       <section className="ticker" aria-label="Brand benefits"><div className="ticker-track"><div>Hand-Painted Details</div><div>12-Size Fit</div><div>Vibes Welcome</div><div>No Boring Nails</div><div>Hand-Painted Details</div><div>12-Size Fit</div><div>Vibes Welcome</div><div>No Boring Nails</div></div></section>
 
-      <section className="mood-section" id="shop"><div className="section-intro"><p className="eyebrow">Find your feeling</p><h2>Shop the vibe,<br /><em>Not the Rulebook.</em></h2><p>Start with the feeling and find the set that takes it from there. Click a card to flip it and peek the gallery.</p></div><div className="mood-grid">{moods.map((m) => {
+      <section className="mood-section" id="shop"><div className="mood-intro-row"><div className="section-intro"><p className="eyebrow">Find your feeling</p><h2>Shop the vibe,<br /><em>Not the Rulebook.</em></h2><p>Each collection holds a handful of sets that share one theme. Click a card to flip it, then open the collection to shop its sets.</p></div><img className="mood-logo" src="/logo-disco-nails.webp" alt="Neon hand with long pink nails holding a disco ball" /></div><div className="mood-grid">{moods.map((m) => {
         const flipped = flippedMoods.has(m.name);
-        const moodProduct = findMoodProduct(m.product) ?? findMoodProduct(m.name);
-        const galleryPreview = moodProduct ? Array.from(new Set([moodProduct.image, ...moodProduct.gallery])) : [];
+        const sets = setsIn(m);
+        const cover = collectionCovers[m.name.toLowerCase()];
+        const accent = sets[0] ? readableAccent(sets[0].accent) : undefined;
+        const titleStyle = accent ? { color: accent, animation: "none", textShadow: `0 0 3px ${accent}, 0 0 10px ${accent}cc, 0 0 22px ${accent}80` } : undefined;
         return <div key={m.name} className={`mood-card-flip${flipped ? " is-flipped" : ""}`}>
           <div className="mood-card-inner">
-            <button type="button" className={`mood-card mood-card-face mood-${m.tone}`} onClick={() => toggleFlip(m.name)} aria-label={`Flip ${m.name} card`}>
-              <span className="mood-kicker">{m.kicker}</span><strong>{m.name}</strong><span className="mood-copy">{m.text}</span><span className="mood-arrow"><ArrowUpRight size={20} /></span>
+            <button type="button" className={`mood-card mood-card-face mood-${m.tone}${cover ? " has-cover" : ""}`} onClick={() => toggleFlip(m.name)} aria-label={`Flip ${m.name} card`}>
+              {cover && <img className="mood-cover" src={cover} alt="" />}
+              <span className="mood-set-count">{sets.length} {sets.length === 1 ? "set" : "sets"}</span>
+              <span className="mood-kicker">{m.kicker}</span><strong style={titleStyle}>{m.name}</strong><span className="mood-copy">{m.text}</span><span className="mood-arrow"><ArrowUpRight size={20} /></span>
             </button>
-            <button type="button" className={`mood-card mood-card-face mood-card-back mood-${m.tone}`} onClick={() => openGallery(moodProduct?.name ?? m.product)} aria-label={`View ${m.name} gallery`}>
-              <span className="mood-back-count">{galleryPreview.length} photos in this gallery</span>
-              <span className="mood-back-grid">{galleryPreview.slice(0, 5).map((src) => <img key={src} src={src} alt="" />)}</span>
-              <strong>View the gallery</strong>
-              <span className="mood-copy">See every angle of {m.name}.</span>
+            <button type="button" className={`mood-card mood-card-face mood-card-back mood-${m.tone}`} onClick={() => setOpenCollection(m)} aria-label={`Shop the ${m.name} collection`}>
+              <span className="mood-back-count">{sets.length} {sets.length === 1 ? "set" : "sets"} in this collection</span>
+              <span className="mood-back-grid">{sets.slice(0, 5).map((p) => <img key={p.name} src={p.image} alt="" />)}</span>
+              <strong style={titleStyle}>Shop the collection</strong>
+              <span className="mood-copy">{sets.map((p) => p.name).join(" · ")}</span>
               <span className="mood-arrow"><Sparkles size={20} /></span>
             </button>
           </div>
         </div>;
       })}</div></section>
 
-      <section className="collection-section" id="collection"><div className="collection-header"><div><p className="eyebrow">The launch drop</p><h2>Meet your <em>New Vibe.</em></h2></div><p className="collection-description">Hand-painted florals, glossy stamped detail, and warm chrome gold — three sets to start the drop.</p></div><div className="filter-row">{["All sets", ...Array.from(new Set(products.map((p) => p.mood)))].map((m) => <button key={m} className={activeMood === m ? "filter active" : "filter"} onClick={() => setActiveMood(m)}>{m}</button>)}</div><div className="product-grid">{visibleProducts.map((p) => <ProductCard key={p.name} product={p} onAdd={addToBag} onOpen={setQuickViewProduct} />)}</div>{visibleProducts.length === 0 && <div className="empty-state">That vibe is taking a tiny break. Try another feeling.</div>}</section>
+      <section className="collection-section" id="collection"><div className="collection-header"><img className="collection-logo" src="/logo-heart-nails.webp" alt="Neon heart with a hand painting its long pink nails" /><div><p className="eyebrow">The launch drop</p><h2>Meet your <em>New Vibe.</em></h2><p className="collection-description">Hand-painted florals, glossy stamped detail, and warm chrome gold — three sets to start the drop.</p></div></div><div className="filter-row">{["All sets", ...Array.from(new Set(products.map((p) => p.mood)))].map((m) => <button key={m} className={activeMood === m ? "filter active" : "filter"} onClick={() => setActiveMood(m)}>{m}</button>)}</div><div className="product-grid">{visibleProducts.map((p) => <ProductCard key={p.name} product={p} onAdd={addToBag} onOpen={setQuickViewProduct} />)}</div>{visibleProducts.length === 0 && <div className="empty-state">That vibe is taking a tiny break. Try another feeling.</div>}</section>
 
-      <section className="custom-section" id="custom"><div className="section-intro"><p className="eyebrow">One of a kind</p><h2>Design your <em>Own Set.</em></h2><p>Pick your shape, finish, and base color, then tell us your vision. Every custom set is made to order at an upgraded price.</p></div>
+      <section className="custom-section" id="custom"><div className="custom-intro-row"><div className="section-intro"><p className="eyebrow">One of a kind</p><h2>Design your <em>Own Set.</em></h2><p>Pick your shape, finish, and base color, then tell us your vision. Every custom set is made to order at an upgraded price.</p></div><img className="custom-logo" src="/logo-moon-nails.webp" alt="Neon hand with long pink nails under a crescent moon and sparkles" /></div>
         <div className="custom-panel">
           <div className="custom-info">
             <span className="product-badge">Made to order</span>
@@ -240,9 +400,9 @@ export default function Home() {
           </div>
           <form className="custom-form" onSubmit={submitCustom}>
             <div className="custom-row">
-              <div className="custom-field"><label htmlFor="customShape">Shape</label><select id="customShape" value={customShape} onChange={(e) => setCustomShape(e.target.value)}><option>Almond</option><option>Coffin</option><option>Square</option><option>Stiletto</option></select></div>
-              <div className="custom-field"><label htmlFor="customFinish">Finish</label><select id="customFinish" value={customFinish} onChange={(e) => setCustomFinish(e.target.value)}><option>Glossy</option><option>Matte</option><option>Chrome</option></select></div>
-              <div className="custom-field"><label htmlFor="customColor">Base color</label><select id="customColor" value={customColor} onChange={(e) => setCustomColor(e.target.value)}><option>Hot Pink</option><option>Ruby Red</option><option>Golden Chrome</option><option>Milk White</option></select></div>
+              <div className="custom-field"><label htmlFor="customShape">Shape</label><select id="customShape" value={customShape} onChange={(e) => setCustomShape(e.target.value)}><option>Almond</option><option>Coffin</option><option>Square</option><option>Stiletto</option><option>Oval</option><option>Round</option><option>Squoval</option><option>Ballerina</option><option>Lipstick</option><option>Duck / Flare</option></select></div>
+              <div className="custom-field"><label htmlFor="customFinish">Finish</label><select id="customFinish" value={customFinish} onChange={(e) => setCustomFinish(e.target.value)}><option>Glossy</option><option>Matte</option><option>Chrome</option><option>Glitter</option><option>Holographic</option><option>Cat Eye</option><option>Velvet</option><option>Jelly</option><option>Pearl Shimmer</option><option>Satin</option></select></div>
+              <div className="custom-field"><label htmlFor="customColor">Base color</label><select id="customColor" value={customColor} onChange={(e) => setCustomColor(e.target.value)}><option>Hot Pink</option><option>Ruby Red</option><option>Golden Chrome</option><option>Milk White</option><option>Jet Black</option><option>Nude Blush</option><option>Lavender</option><option>Baby Blue</option><option>Neon Green</option><option>Sunset Orange</option><option>Electric Purple</option><option>Cherry Wine</option><option>Silver Chrome</option><option>Sheer Clear</option></select></div>
             </div>
             <div className="custom-field"><label htmlFor="customNote">Describe your vision</label><textarea id="customNote" value={customNote} onChange={(e) => setCustomNote(e.target.value)} placeholder="Colors, art, occasion, inspiration photos you can email over..." required /></div>
             <button className="primary-button" type="submit">Add custom set — $22.00 <ArrowUpRight size={18} /></button>
@@ -250,7 +410,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="ritual-section" id="ritual"><div className="ritual-image"><img src="/products/love-letters-2.jpg" alt="Hand wearing the Love Letters press-on set" /><span className="vertical-label">THE NAIL’D IT! RITUAL</span></div><div className="ritual-copy"><p className="eyebrow">Your manicure, simplified</p><h2>Prep.<br /><em>Press.</em><br />Impress.</h2><p>Salon appointments mean chemical fumes, sticky discomfort, and an hour-plus in the chair — just to chip a week later. An instant mani gets you the same fresh-set look in minutes, with way less commitment. Choose the best fit, follow the adhesive instructions, and let the set do the rest.</p><div className="ritual-steps"><div><b>01</b><span>Find your fit</span></div><div><b>02</b><span>Prep & press</span></div><div><b>03</b><span>Show them off</span></div></div><a className="arrow-link" href="#story">Read the full ritual <ChevronRight size={18} /></a></div></section>
+      <section className="ritual-section" id="ritual"><div className="ritual-image"><img src="/products/spider-ritual.png" alt="Hand wearing the Spidergirl Lives! Halloween press-on nails" /><span className="vertical-label">THE NAIL’D IT! RITUAL</span></div><div className="ritual-copy"><img className="ritual-logo" src="/logo-skeleton-hand.png" alt="Neon skeleton hand holding a nail polish bottle" /><p className="eyebrow">Your manicure, simplified</p><h2>Prep.<br /><em>Press.</em><br />Impress.</h2><p>Salon appointments mean chemical fumes, sticky discomfort, and an hour-plus in the chair — just to chip a week later. An instant mani gets you the same fresh-set look in minutes, with way less commitment. Choose the best fit, follow the adhesive instructions, and let the set do the rest.</p><div className="ritual-steps"><div><b>01</b><span>Find your fit</span></div><div><b>02</b><span>Prep & press</span></div><div><b>03</b><span>Show them off</span></div></div><a className="arrow-link" href="#story">Read the full ritual <ChevronRight size={18} /></a></div></section>
 
       <section className="gallery-section" id="gallery"><div className="section-intro"><p className="eyebrow">Real sets, real hands</p><h2>The <em>gallery.</em></h2><p>A closer look at the collection. Swipe or use the arrows to explore, and select a photo to see every detail.</p></div><GalleryCarousel photos={publishedPhotos} onOpen={setLightboxIndex} /></section>
 
@@ -259,11 +419,17 @@ export default function Home() {
       <section className="newsletter"><div><p className="eyebrow">Get the next vibe first</p><h2>New drops, limited sets,<br /><em>Good Excuses.</em></h2></div><form onSubmit={(e) => { e.preventDefault(); setToast("You’re on the list. The next vibe is coming your way."); }}><input type="email" required placeholder="Your email address" aria-label="Your email address" /><button className="primary-button" type="submit">Join the list <ArrowUpRight size={18} /></button></form></section>
     </main>
 
-    <footer className="site-footer"><div className="footer-top"><a className="wordmark" href="#top"><img src="/logo-wordmark.png" alt="Nail'd It!" /></a><p>Your next favorite detail<br />starts here.</p><div className="footer-links"><a href="#shop">Shop by vibe</a><a href="#ritual">Application guide</a><a href="#story">About Nail’d It!</a><a href="#top">Contact</a></div></div><div className="footer-bottom"><span>© 2026 Nail’d It! All rights reserved.</span><span>Press on. Stand out.</span><span>Instagram ↗ &nbsp; TikTok ↗</span></div></footer>
+    <SiteFooter />
 
-    {quizOpen && <div className="modal-backdrop" onClick={() => setQuizOpen(false)}><div className="quiz-modal" onClick={(e) => e.stopPropagation()}><button className="modal-close" onClick={() => setQuizOpen(false)}><X size={20} /></button>{quizStep === 0 ? <><p className="eyebrow">Find your vibe</p><h2>Which set feels like <em>you</em> today?</h2><p>Answer one quick question and we’ll point you toward a very good decision.</p><div className="quiz-options"><button onClick={() => setQuizStep(1)}>I’m blooming loud <ArrowUpRight size={17} /></button><button onClick={() => setQuizStep(2)}>I’m feeling romantic <ArrowUpRight size={17} /></button><button onClick={() => setQuizStep(3)}>I want warm and golden <ArrowUpRight size={17} /></button></div></> : <><p className="eyebrow">Your Nail’d It! match</p><h2>{quizStep === 2 ? "You’re giving Love Letters." : quizStep === 3 ? "You’re giving Golden Afternoon." : "You’re giving Wild for Wildflowers."}</h2><p>{quizStep === 2 ? "Meet Love Letters: romantic red with hand-stamped detail and a glitter accent nail." : quizStep === 3 ? "Meet Golden Afternoon: warm foil and chrome gold for golden hour." : "Meet Wild for Wildflowers: hand-painted florals over hot pink, glitter included."}</p><button className="primary-button" onClick={() => { setQuizOpen(false); setActiveMood(quizStep === 2 ? "Love Letters" : quizStep === 3 ? "Golden Afternoon" : "Wild for Wildflowers"); document.getElementById("collection")?.scrollIntoView({ behavior: "smooth" }); }}>Shop my match <ArrowUpRight size={18} /></button></>}</div></div>}
+    {quizOpen && <Quiz collections={moods} setsIn={setsIn} onClose={() => setQuizOpen(false)} onShop={(m) => { setQuizOpen(false); setOpenCollection(m); }} />}
 
-    {quickViewProduct && <QuickView product={quickViewProduct} onClose={() => setQuickViewProduct(null)} onAdd={(name) => { addToBag(name); setQuickViewProduct(null); }} />}
+    {openCollection && <CollectionView collection={openCollection} sets={setsIn(openCollection)} onClose={() => setOpenCollection(null)} onAdd={addToBag} onOpenSet={setQuickViewProduct} />}
+
+    {quickViewProduct && <QuickView product={quickViewProduct} onClose={() => setQuickViewProduct(null)} onAdd={(name) => { addToBag(name); setQuickViewProduct(null); }} onSwitch={setQuickViewProduct} onCollection={() => { const m = moods.find((x) => x.name.toLowerCase() === quickViewProduct.mood.toLowerCase()); setQuickViewProduct(null); if (m) setOpenCollection(m); }} />}
+
+    {bagOpen && <BagDrawer bag={bag} onClose={() => setBagOpen(false)} />}
+
+    {order && <OrderConfirmation order={order} onClose={() => setOrder(null)} />}
 
     {lightboxIndex !== null && <Lightbox photos={publishedPhotos} index={lightboxIndex} onIndex={setLightboxIndex} onClose={() => setLightboxIndex(null)} />}
   </div>;

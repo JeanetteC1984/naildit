@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" type="image/png" href="assets/logo-icon.png" />
+  <title>Nail'd It! Brand Style Guide</title>
+  <link rel="stylesheet" href="css/site.css" />
+  <style>
+    .guide { padding:0 8vw 96px; }
+    .guide-hero { position:relative; isolation:isolate; padding:88px 8vw 72px; margin:0 -8vw; display:grid; grid-template-columns:1.2fr .8fr; gap:5vw; align-items:center; background:radial-gradient(ellipse at 50% 40%,#07060a,#000 75%); border-bottom:1px solid rgba(146,85,255,.3); }
+    .guide-hero::before { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; background-image:radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 27% 64%,rgba(255,172,214,.9),transparent),radial-gradient(1.5px 1.5px at 41% 32%,#fff,transparent),radial-gradient(1px 1px at 58% 78%,rgba(39,231,245,.8),transparent),radial-gradient(1px 1px at 73% 22%,rgba(255,211,78,.85),transparent),radial-gradient(1px 1px at 94% 88%,rgba(146,85,255,.9),transparent); background-size:110px 110px; animation:glitter-twinkle 4s ease-in-out infinite; }
+    .guide-hero h1 { margin:0; font-weight:900; letter-spacing:-.06em; line-height:.98; font-size:clamp(46px,6vw,88px); }
+    .guide-hero h1 em { font-family:'Sacramento',cursive; font-weight:400; letter-spacing:0; color:var(--pink-light); -webkit-text-stroke:.5px rgba(255,240,248,.5); text-shadow:var(--text-glow-pink); animation:pink-neon-glow 3.2s ease-in-out infinite; }
+    .guide-hero p:not(.eyebrow) { max-width:520px; margin:22px 0 0; color:var(--muted); font-size:15px; line-height:1.75; }
+    .guide-hero img { width:min(100%,300px); justify-self:center; filter:var(--logo-glow); }
+    .toc { display:flex; flex-wrap:wrap; gap:8px; margin:34px 0 0; }
+    .toc a { border:1px solid rgba(146,85,255,.4); border-radius:999px; padding:7px 14px; font:400 15px 'Bebas Neue',sans-serif; letter-spacing:.08em; color:var(--cyan); }
+    .toc a:hover { border-color:var(--pink); color:var(--pink-light); box-shadow:0 0 14px rgba(255,50,149,.25); }
+
+    .g-section { padding-top:84px; scroll-margin-top:130px; }
+    .g-head { display:flex; align-items:baseline; gap:16px; margin-bottom:10px; }
+    .g-head span { font:400 40px/1 'Bebas Neue',sans-serif; color:var(--violet); text-shadow:0 0 10px rgba(146,85,255,.6); }
+    .g-head h2 { margin:0; font-size:clamp(30px,3.6vw,46px); font-weight:900; letter-spacing:-.05em; }
+    .g-head h2 em { font-family:'Sacramento',cursive; font-weight:400; letter-spacing:0; color:var(--pink-light); text-shadow:var(--text-glow-pink); }
+    .g-lede { max-width:640px; margin:0 0 30px; color:var(--muted); font-size:14px; line-height:1.75; }
+    .card { border-radius:var(--radius); background:var(--glass); border:1px solid rgba(255,255,255,.09); box-shadow:var(--card-glow); }
+    .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+    .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    .label { display:block; color:var(--cyan); font:800 10px 'Plus Jakarta Sans'; letter-spacing:.14em; text-transform:uppercase; }
+    .note { margin:8px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
+    code { font:600 12px ui-monospace,Consolas,monospace; color:var(--pink-light); background:rgba(255,50,149,.1); border:1px solid rgba(255,50,149,.25); padding:1px 6px; border-radius:6px; overflow-wrap:anywhere; }
+
+    /* Voice */
+    .voice-card { padding:26px; }
+    .voice-card h3 { margin:10px 0 8px; font-size:18px; }
+    .voice-card p { margin:0; color:var(--muted); font-size:13px; line-height:1.7; }
+    .taglines { display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:22px; }
+    .taglines span { font-weight:800; animation:ticker-glow 2.4s ease-in-out infinite; }
+    .taglines span:nth-child(4n+1) { color:var(--pink-light); text-transform:uppercase; font-size:13px; letter-spacing:.1em; }
+    .taglines span:nth-child(4n+2) { font:400 22px 'Bebas Neue'; letter-spacing:.12em; color:var(--cyan); }
+    .taglines span:nth-child(4n+3) { font:800 13px 'Poppins'; letter-spacing:.06em; text-transform:uppercase; color:var(--violet); }
+    .taglines span:nth-child(4n) { font:400 30px 'Sacramento'; color:var(--yellow); }
+
+    /* Logos */
+    .logo-tile { padding:22px; display:flex; flex-direction:column; }
+    .logo-stage { height:190px; display:grid; place-items:center; border-radius:14px; margin-bottom:14px; background:radial-gradient(circle at 50% 45%,rgba(146,85,255,.14),transparent 65%),#050407; border:1px solid var(--line); }
+    .logo-stage.brick { background:linear-gradient(rgba(3,3,4,.35),rgba(3,3,4,.5)),url(assets/brick-wall-plain.png) center/cover; }
+    .logo-stage img { max-height:160px; max-width:85%; object-fit:contain; filter:var(--logo-glow); }
+    .logo-tile h3 { margin:6px 0 0; font-size:15px; }
+
+    /* Colors */
+    .swatch { overflow:hidden; }
+    .swatch-chip { height:120px; position:relative; }
+    .swatch-chip.glow::after { content:''; position:absolute; inset:28px; border-radius:50%; background:inherit; filter:blur(22px); opacity:.6; }
+    .swatch-info { padding:14px 16px 16px; }
+    .swatch-info strong { display:block; font-size:14px; }
+    .swatch-info code { display:inline-block; margin-top:6px; }
+    .swatch-info p { margin:8px 0 0; color:var(--muted); font-size:12px; line-height:1.55; }
+    .neutral-row { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:16px; }
+    .neutral-row .swatch-chip { height:64px; border-bottom:1px solid var(--line); }
+
+    /* Type */
+    .type-row { display:grid; grid-template-columns:230px 1fr; gap:26px; align-items:center; padding:26px 28px; }
+    .type-row + .type-row { border-top:1px solid var(--line); }
+    .type-row .meta p { margin:8px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
+    .sample-jakarta { font:900 clamp(34px,4vw,56px)/1 'Plus Jakarta Sans'; letter-spacing:-.06em; }
+    .sample-script { font:400 clamp(46px,5vw,72px)/1 'Sacramento'; color:var(--pink-light); -webkit-text-stroke:.5px rgba(255,240,248,.5); text-shadow:var(--text-glow-pink); }
+    .sample-bebas { font:400 clamp(30px,3.4vw,46px)/1 'Bebas Neue'; letter-spacing:.1em; color:var(--cyan); text-shadow:0 0 6px currentColor,0 0 16px currentColor; }
+    .sample-poppins { font:800 clamp(18px,2vw,24px)/1.2 'Poppins'; letter-spacing:.06em; text-transform:uppercase; color:var(--violet); text-shadow:0 0 6px currentColor,0 0 16px currentColor; }
+    .sample-body { color:var(--muted); font-size:15px; line-height:1.8; max-width:520px; }
+    .scale { margin-top:18px; padding:24px 28px; }
+    .scale table { width:100%; border-collapse:collapse; font-size:13px; }
+    .scale th { text-align:left; color:var(--cyan); font:800 10px 'Plus Jakarta Sans'; letter-spacing:.12em; text-transform:uppercase; padding:0 12px 10px 0; }
+    .scale td { padding:10px 12px 10px 0; border-top:1px solid var(--line); color:var(--muted); vertical-align:top; }
+    .scale td:first-child { color:var(--text); font-weight:700; white-space:nowrap; }
+    .table-wrap { overflow-x:auto; }
+
+    /* Glow */
+    .glow-tile { padding:26px; min-height:210px; display:flex; flex-direction:column; justify-content:space-between; gap:16px; }
+    .glow-demo { display:grid; place-items:center; min-height:100px; }
+    .glow-text-pink { font:400 52px/1 'Sacramento'; color:var(--pink-light); text-shadow:var(--text-glow-pink); animation:pink-neon-glow 3.2s ease-in-out infinite; }
+    .glow-ticker { display:flex; gap:18px; font:400 30px 'Bebas Neue'; letter-spacing:.1em; }
+    .glow-ticker span { animation:ticker-glow 2.4s ease-in-out infinite; }
+    .glow-card { width:70%; height:84px; border-radius:18px; border:1px solid rgba(255,50,149,.4); background:var(--glass); box-shadow:var(--card-glow); }
+    .glow-logo img { height:96px; filter:var(--logo-glow); }
+    .glow-btn { box-shadow:0 0 12px rgba(255,50,149,.3),0 0 26px rgba(146,85,255,.18),inset 0 1px 0 #fff3; }
+    .glow-border { width:70%; height:3px; border-radius:3px; background:linear-gradient(90deg,rgba(255,50,149,.9),rgba(146,85,255,.8),rgba(39,231,245,.8)); box-shadow:0 0 12px rgba(255,50,149,.5); }
+
+    /* Buttons */
+    .btn-row { display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:28px; }
+    .btn-spec { padding:0 28px 26px; }
+    .chip { display:inline-flex; border-radius:999px; padding:8px 14px; border:1px solid currentColor; background:rgba(255,255,255,.04); text-shadow:0 0 6px currentColor,0 0 16px currentColor; box-shadow:0 0 12px -2px currentColor; }
+    .chip.c1 { font:800 11px 'Plus Jakarta Sans'; letter-spacing:.1em; color:var(--pink-light); text-transform:uppercase; }
+    .chip.c2 { font:400 15px 'Bebas Neue'; letter-spacing:.12em; color:var(--cyan); }
+    .chip.c3 { font:800 11px 'Poppins'; letter-spacing:.06em; color:var(--violet); text-transform:uppercase; }
+    .chip.c4 { font:400 22px/1 'Sacramento'; color:var(--yellow); padding:5px 16px; }
+    .badge { display:inline-flex; padding:5px 9px; border:1px solid rgba(255,172,214,.45); border-radius:999px; background:#8a205b; color:#fff; font:800 9px 'Plus Jakarta Sans'; letter-spacing:.06em; text-transform:uppercase; }
+    .badge.gold { background:none; border-color:rgba(255,211,78,.55); color:var(--yellow); text-shadow:0 0 8px rgba(255,211,78,.6); }
+    .round-btn { width:44px; height:44px; display:grid; place-items:center; border-radius:50%; background:linear-gradient(135deg,rgba(183,25,102,.85),rgba(133,40,160,.85)); border:1px solid rgba(255,172,214,.65); color:var(--yellow); box-shadow:0 0 10px rgba(255,50,149,.45),0 0 22px rgba(146,85,255,.25),inset 0 1px 0 #fff3; }
+
+    /* Backgrounds */
+    .bg-tile { overflow:hidden; }
+    .bg-demo { height:170px; position:relative; isolation:isolate; border-bottom:1px solid var(--line); }
+    .bg-void { background:radial-gradient(ellipse at 8% 5%,rgba(146,85,255,.25),transparent 55%),radial-gradient(ellipse at 95% 60%,rgba(39,231,245,.08),transparent 45%),linear-gradient(180deg,#020202,#000 70%); }
+    .bg-glitter { background:radial-gradient(ellipse at 50% 40%,#0d0b14,#000 75%); }
+    .bg-glitter::before { content:''; position:absolute; inset:0; z-index:-1; background-image:radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 27% 64%,rgba(255,172,214,.9),transparent),radial-gradient(1.5px 1.5px at 41% 32%,#fff,transparent),radial-gradient(1px 1px at 58% 78%,rgba(39,231,245,.8),transparent),radial-gradient(1px 1px at 73% 22%,rgba(255,211,78,.85),transparent),radial-gradient(1.5px 1.5px at 86% 56%,#fff,transparent),radial-gradient(1px 1px at 94% 88%,rgba(146,85,255,.9),transparent),radial-gradient(1px 1px at 6% 83%,rgba(255,50,149,.8),transparent); background-size:60px 60px; animation:glitter-twinkle 4s ease-in-out infinite; }
+    .bg-brick { background:linear-gradient(rgba(3,3,4,.3),rgba(3,3,4,.5)),radial-gradient(ellipse at 12% 0%,rgba(146,85,255,.16),transparent 55%),url(assets/brick-wall-plain.png) center/cover no-repeat; }
+    .bg-pattern { background:linear-gradient(rgba(3,3,4,.55),rgba(3,3,4,.55)),url(assets/pattern-tile.png) center/160px auto repeat; }
+    .bg-plum { background:linear-gradient(135deg,#3a193b,#171222); }
+    .bg-tiedye { background:radial-gradient(circle at 20% 25%,rgba(255,50,149,.55),transparent 45%),radial-gradient(circle at 78% 30%,rgba(39,231,245,.4),transparent 45%),radial-gradient(circle at 50% 85%,rgba(146,85,255,.55),transparent 50%),radial-gradient(circle at 90% 90%,rgba(255,211,78,.3),transparent 40%),#0a0710; }
+    .bg-info { padding:16px 18px 18px; }
+    .bg-info strong { display:block; font-size:14px; }
+    .bg-info p { margin:6px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
+
+    /* Rules */
+    .rules { padding:26px 28px; }
+    .rules h3 { margin:0 0 12px; font-size:17px; }
+    .rules ul { margin:0; padding-left:18px; display:grid; gap:8px; color:var(--muted); font-size:13px; line-height:1.6; }
+    .rules.do { border-color:rgba(39,231,245,.4); }
+    .rules.dont { border-color:rgba(255,92,114,.45); }
+    .rules.do h3 { color:var(--cyan); }
+    .rules.dont h3 { color:#ff8a9a; }
+
+    @media (max-width:1000px) { .grid-4 { grid-template-columns:repeat(2,1fr); } .grid-3 { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:700px) {
+      .guide-hero { grid-template-columns:1fr; padding:56px 7vw 48px; margin:0 -7vw; }
+      .guide { padding:0 7vw 72px; }
+      .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; }
+      .neutral-row { grid-template-columns:repeat(2,1fr); }
+      .type-row { grid-template-columns:1fr; gap:14px; padding:22px; }
+      .btn-row { padding:22px; } .btn-spec { padding:0 22px 22px; }
+    }
+  </style>
+</head>
+<body>
+<div class="site-shell">
+  <header class="site-header">
+    <a class="wordmark" href="index.html" aria-label="Nail'd It home"><img src="assets/logo-wordmark.png" alt="Nail'd It!" /></a>
+    <nav class="main-nav" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="ritual.html">The ritual</a>
+      <a href="brand-guide.html" aria-current="page">Style guide</a>
+    </nav>
+  </header>
+
+  <main class="guide">
+    <section class="guide-hero">
+      <div>
+        <p class="eyebrow">Brand style guide · 2026</p>
+        <h1>The Nail’d It!<br /><em>Look Book.</em></h1>
+        <p>How the brand looks, sounds, and glows. Everything here is pulled straight from the live storefront, so anything new (a page, a post, a label, a slide) can match it.</p>
+        <nav class="toc" aria-label="Guide sections">
+          <a href="#voice">Voice</a><a href="#logos">Logos</a><a href="#color">Color</a><a href="#type">Type</a><a href="#glow">Glow</a><a href="#buttons">Buttons</a><a href="#backgrounds">Backgrounds</a><a href="#rules">Do &amp; don’t</a>
+        </nav>
+      </div>
+      <img src="assets/logo-wordmark.png" alt="Nail'd It! wordmark" />
+    </section>
+
+    <!-- 01 Voice -->
+    <section class="g-section" id="voice">
+      <div class="g-head"><span>01</span><h2>Brand <em>Voice</em></h2></div>
+      <p class="g-lede">Bold, expressive, a little rebellious. Nail’d It! is hand-painted press-on nail art for people who want a statement, not a neutral. The target customer is 18 to 30, finds us on Instagram and TikTok, and loves hand-painted florals, chrome finishes, and bold color.</p>
+      <div class="grid-3">
+        <div class="card voice-card"><span class="label">Short</span><h3>Say it in a breath.</h3><p>Headlines are three to six words. Body copy is one or two sentences. If it needs a scroll, cut it.</p></div>
+        <div class="card voice-card"><span class="label">Confident</span><h3>No hedging.</h3><p>“Impossible to ignore,” not “might turn some heads.” We believe in the sets, so the copy does too.</p></div>
+        <div class="card voice-card"><span class="label">Playful</span><h3>Wink, don’t shout.</h3><p>Puns and attitude are welcome (“0 boring details,” “Good Excuses”), but the product stays the hero.</p></div>
+      </div>
+      <div class="taglines" aria-label="Taglines in use">
+        <span>Press on. Stand out.</span><span>Your next favorite detail</span><span>0 boring details</span><span>Impossible to ignore</span><span>Prep. Press. Impress.</span><span>Shop the vibe</span><span>Vibes welcome</span><span>Not the rulebook</span>
+      </div>
+    </section>
+
+    <!-- 02 Logos -->
+    <section class="g-section" id="logos">
+      <div class="g-head"><span>02</span><h2>Logos &amp; <em>Neon Marks</em></h2></div>
+      <p class="g-lede">The wordmark is the primary logo. The neon hand marks are supporting illustrations, one per section, never two side by side. Every mark gets the same logo glow (see Glow) and always sits on a dark or brick background.</p>
+      <div class="grid-4">
+        <div class="card logo-tile"><div class="logo-stage brick"><img src="assets/logo-wordmark.png" alt="Nail'd It! wordmark" /></div><span class="label">Primary</span><h3>Wordmark</h3><p class="note">Header and footer. Minimum 100px wide.</p></div>
+        <div class="card logo-tile"><div class="logo-stage"><img src="assets/logo-icon.png" alt="Nail'd It! icon" /></div><span class="label">Icon</span><h3>App icon</h3><p class="note">Favicon, social avatar, packaging seal.</p></div>
+        <div class="card logo-tile"><div class="logo-stage"><img src="assets/logo-polish-duo.webp" alt="Neon polish bottles mark" /></div><span class="label">Hero sticker</span><h3>Polish duo</h3><p class="note">Tilted −17° over the hero image.</p></div>
+        <div class="card logo-tile"><div class="logo-stage"><img src="assets/logo-skeleton-hand.png" alt="Neon skeleton hand mark" /></div><span class="label">Ritual</span><h3>Skeleton hand</h3><p class="note">Ritual and how-to content.</p></div>
+        <div class="card logo-tile"><div class="logo-stage"><img src="assets/logo-disco-nails.webp" alt="Neon disco ball hand mark" /></div><span class="label">Shop by vibe</span><h3>Disco nails</h3><p class="note">Collections and mood content.</p></div>
+        <div class="card logo-tile"><div class="logo-stage"><img src="assets/logo-heart-nails.webp" alt="Neon heart hand mark" /></div><span class="label">Launch drop</span><h3>Heart nails</h3><p class="note">New drops and product grids.</p></div>
+        <div class="card logo-tile"><div class="logo-stage"><img src="assets/logo-moon-nails.webp" alt="Neon moon hand mark" /></div><span class="label">Custom</span><h3>Moon nails</h3><p class="note">Custom orders and made-to-order.</p></div>
+        <div class="card logo-tile"><div class="logo-stage"><img src="assets/hero-badge-new.png" alt="Nail'd It! badge" /></div><span class="label">Badge</span><h3>Round badge</h3><p class="note">Stickers, packaging, social posts.</p></div>
+      </div>
+    </section>
+
+    <!-- 03 Color -->
+    <section class="g-section" id="color">
+      <div class="g-head"><span>03</span><h2>Color <em>Palette</em></h2></div>
+      <p class="g-lede">Five neons on void black. Pink leads; cyan, violet, and yellow support. Neons are for text, borders, and glow, not large flat fills. The only big fills are the pink-to-violet button gradient and the plum band.</p>
+      <div class="grid-4" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
+        <div class="card swatch"><div class="swatch-chip glow" style="background:#ff3295"></div><div class="swatch-info"><strong>Hot Pink</strong><code>#ff3295</code> <code>--pink</code><p>Primary. Glow color for script, card and logo halos.</p></div></div>
+        <div class="card swatch"><div class="swatch-chip glow" style="background:#ffacd6"></div><div class="swatch-info"><strong>Pink Light</strong><code>#ffacd6</code> <code>--pink-light</code><p>Script headlines, prices, first marquee style.</p></div></div>
+        <div class="card swatch"><div class="swatch-chip glow" style="background:#27e7f5"></div><div class="swatch-info"><strong>Cyan</strong><code>#27e7f5</code> <code>--cyan</code><p>Eyebrows, focus rings, hover borders.</p></div></div>
+        <div class="card swatch"><div class="swatch-chip glow" style="background:#9255ff"></div><div class="swatch-info"><strong>Violet</strong><code>#9255ff</code> <code>--violet</code><p>Secondary glow, section borders, Poppins labels.</p></div></div>
+        <div class="card swatch"><div class="swatch-chip glow" style="background:#ffd34e"></div><div class="swatch-info"><strong>Neon Yellow</strong><code>#ffd34e</code> <code>--yellow</code><p>✦ sparkles, price pills, script links, button text.</p></div></div>
+      </div>
+      <div class="neutral-row">
+        <div class="card swatch"><div class="swatch-chip" style="background:#000"></div><div class="swatch-info"><strong>Void</strong><code>#000000</code></div></div>
+        <div class="card swatch"><div class="swatch-chip" style="background:#0d0e12"></div><div class="swatch-info"><strong>Surface</strong><code>#0d0e12</code></div></div>
+        <div class="card swatch"><div class="swatch-chip" style="background:#141522"></div><div class="swatch-info"><strong>Surface 2</strong><code>#141522</code></div></div>
+        <div class="card swatch"><div class="swatch-chip" style="background:#faf6ff"></div><div class="swatch-info"><strong>Text</strong><code>#faf6ff</code></div></div>
+        <div class="card swatch"><div class="swatch-chip" style="background:#b2b7ca"></div><div class="swatch-info"><strong>Muted</strong><code>#b2b7ca</code></div></div>
+      </div>
+      <div class="grid-3" style="margin-top:16px">
+        <div class="card swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#b71966,#8528a0)"></div><div class="swatch-info"><strong>Button gradient</strong><code>#b71966 → #8528a0</code><p>Primary buttons and round arrow controls.</p></div></div>
+        <div class="card swatch"><div class="swatch-chip" style="background:linear-gradient(90deg,#ff3295,#9255ff,#27e7f5)"></div><div class="swatch-info"><strong>Neon edge</strong><code>pink → violet → cyan</code><p>Header underline and progress bars.</p></div></div>
+        <div class="card swatch"><div class="swatch-chip" style="background:#8a205b"></div><div class="swatch-info"><strong>Badge berry</strong><code>#8a205b</code><p>Product badges (“Hand-painted”, “New drop”).</p></div></div>
+      </div>
+    </section>
+
+    <!-- 04 Type -->
+    <section class="g-section" id="type">
+      <div class="g-head"><span>04</span><h2>Typo<em>graphy</em></h2></div>
+      <p class="g-lede">Four Google Fonts. Plus Jakarta Sans does the heavy lifting; Sacramento is the neon sign. Bebas Neue and Poppins appear in labels and buttons, rotating with the other two like the marquee.</p>
+      <div class="card">
+        <div class="type-row"><div class="meta"><span class="label">Headlines &amp; body</span><p><b>Plus Jakarta Sans</b> 900 for headlines (letter-spacing −0.06em, line-height 0.98), 400 to 800 for body and labels.</p></div><div><div class="sample-jakarta">Your next favorite detail.</div><p class="sample-body">Hand-painted press-ons for every version of you, from soft and understated to impossible to ignore.</p></div></div>
+        <div class="type-row"><div class="meta"><span class="label">Neon script</span><p><b>Sacramento</b> 400. The emphasis word inside a headline, always pink-light with the pink glow. One or two words, never a sentence.</p></div><div class="sample-script">Favorite Detail</div></div>
+        <div class="type-row"><div class="meta"><span class="label">Display caps</span><p><b>Bebas Neue</b> 400, letter-spacing 0.06 to 0.14em. Buttons, numbers, marquee items.</p></div><div class="sample-bebas">12-Size Fit</div></div>
+        <div class="type-row"><div class="meta"><span class="label">Accent labels</span><p><b>Poppins</b> 700 to 800, uppercase. Only as one of the rotating marquee or button styles.</p></div><div class="sample-poppins">0 Boring Details</div></div>
+        <div class="type-row"><div class="meta"><span class="label">Eyebrow</span><p>Jakarta 800, 11px, uppercase, 0.18em tracking, cyan with a soft glow. Sits above every section title.</p></div><p class="eyebrow" style="margin:0">Press on. Stand out.</p></div>
+      </div>
+      <div class="card scale"><div class="table-wrap"><table>
+        <tr><th>Role</th><th>Size</th><th>Font</th></tr>
+        <tr><td>Hero title</td><td>clamp(54px, 7vw, 104px)</td><td>Jakarta 900 + Sacramento emphasis</td></tr>
+        <tr><td>Section title</td><td>clamp(42px, 5vw, 72px)</td><td>Jakarta 900 + Sacramento emphasis</td></tr>
+        <tr><td>Card title</td><td>15 to 26px</td><td>Jakarta 700 to 800</td></tr>
+        <tr><td>Body</td><td>14 to 15px, line-height 1.75 to 1.8</td><td>Jakarta 400, muted color</td></tr>
+        <tr><td>Small label</td><td>10 to 11px, uppercase</td><td>Jakarta 800, cyan</td></tr>
+      </table></div></div>
+      <p class="note" style="margin-top:14px">Load all four with one Google Fonts link: <code>family=Sacramento&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Bebas+Neue&amp;family=Poppins:wght@700;800</code>. This replaces the Inter and Alex Brush pairing in the older internal guide.</p>
+    </section>
+
+    <!-- 05 Glow -->
+    <section class="g-section" id="glow">
+      <div class="g-head"><span>05</span><h2>The <em>Glow</em></h2></div>
+      <p class="g-lede">Glow is the signature, and it is kept consistent: one text glow, one card glow, one logo glow. Script text breathes on a slow 3.2s pulse; marquee items pulse at 2.4s in their own color.</p>
+      <div class="grid-3">
+        <div class="card glow-tile"><div class="glow-demo"><span class="glow-text-pink">Impress.</span></div><div><span class="label">Pink text glow</span><p class="note"><code>--text-glow-pink</code>: 3, 10, 22, 40px pink layers with a white core. Animated with <code>pink-neon-glow</code>.</p></div></div>
+        <div class="card glow-tile"><div class="glow-demo glow-ticker"><span style="color:var(--pink-light)">Hot</span><span style="color:var(--cyan)">Cool</span><span style="color:var(--yellow)">Gold</span></div><div><span class="label">Color glow</span><p class="note">Text shadow in <code>currentColor</code> at 4, 10, 20px, pulsing via <code>ticker-glow</code>. Used in nav, marquee, and chips.</p></div></div>
+        <div class="card glow-tile"><div class="glow-demo"><div class="glow-card"></div></div><div><span class="label">Card glow</span><p class="note"><code>--card-glow</code>: dark drop shadow plus 16px pink and 36px violet halos, pink border at 40%.</p></div></div>
+        <div class="card glow-tile"><div class="glow-demo glow-logo"><img src="assets/logo-skeleton-hand.png" alt="" /></div><div><span class="label">Logo glow</span><p class="note"><code>--logo-glow</code>: drop-shadow 8px pink + 20px violet. Grows a touch on hover.</p></div></div>
+        <div class="card glow-tile"><div class="glow-demo"><span class="primary-button glow-btn">Add to bag</span></div><div><span class="label">Button glow</span><p class="note">12px pink and 26px violet halo with a 1px white inner highlight. Lifts 3px on hover.</p></div></div>
+        <div class="card glow-tile"><div class="glow-demo"><div class="glow-border"></div></div><div><span class="label">Neon edge</span><p class="note">Pink to violet to cyan gradient line under the header and on progress bars.</p></div></div>
+      </div>
+      <div class="card" style="margin-top:18px;padding:22px 26px"><span class="label">Copy-ready tokens</span>
+        <p class="note"><code>--text-glow-pink: 0 0 3px rgba(255,240,248,.85), 0 0 10px rgba(255,50,149,1), 0 0 22px rgba(255,50,149,.7), 0 0 40px rgba(255,50,149,.35)</code></p>
+        <p class="note"><code>--card-glow: 0 12px 28px rgba(0,0,0,.55), 0 0 16px rgba(255,50,149,.3), 0 0 36px rgba(146,85,255,.2)</code></p>
+        <p class="note"><code>--logo-glow: drop-shadow(0 0 8px rgba(255,50,149,.6)) drop-shadow(0 0 20px rgba(146,85,255,.4))</code></p>
+      </div>
+    </section>
+
+    <!-- 06 Buttons -->
+    <section class="g-section" id="buttons">
+      <div class="g-head"><span>06</span><h2>Buttons &amp; <em>Chips</em></h2></div>
+      <p class="g-lede">Buttons and filter chips rotate through the four marquee styles (Jakarta pink, Bebas cyan, Poppins violet, Sacramento yellow) so a row never looks uniform. Corners are 12px on buttons and fully round on chips.</p>
+      <div class="card">
+        <div class="btn-row hero-actions">
+          <a class="primary-button" href="#buttons">Shop by vibe ↘</a>
+          <a class="secondary-button" href="#buttons">Find my set ✦</a>
+          <span class="primary-button" style="font-family:'Bebas Neue';letter-spacing:.06em;color:var(--yellow);text-shadow:0 0 10px rgba(255,211,78,.85),0 0 20px rgba(255,211,78,.5)">Add to bag ↗</span>
+          <span class="arrow-link">Read the full ritual ›</span>
+        </div>
+        <div class="btn-spec"><p class="note"><b>Primary</b>: gradient #b71966 → #8528a0, pink-light border at 60%. <b>Secondary</b>: transparent with cyan border and cyan script text. <b>Text link</b>: Sacramento 30px in yellow with a yellow glow.</p></div>
+        <div class="btn-row" style="border-top:1px solid var(--line)">
+          <span class="chip c1">All sets</span><span class="chip c2">Wildflowers</span><span class="chip c3">Love Letters</span><span class="chip c4">Golden Afternoon</span>
+          <span class="badge">Hand-painted</span><span class="badge gold">3 sets</span>
+          <span class="round-btn" aria-hidden="true">‹</span><span class="round-btn" aria-hidden="true">›</span>
+        </div>
+        <div class="btn-spec"><p class="note"><b>Chips</b>: glow in their own color when active. <b>Badges</b>: berry fill for product labels, yellow outline for counts. <b>Arrow controls</b>: round, button gradient, yellow icon.</p></div>
+      </div>
+    </section>
+
+    <!-- 07 Backgrounds -->
+    <section class="g-section" id="backgrounds">
+      <div class="g-head"><span>07</span><h2>Back<em>grounds</em></h2></div>
+      <p class="g-lede">The page is void black with faint violet light. Sections alternate between glitter black, brick wall, and pattern tile so scrolling has rhythm. Keep two plain sections between repeats of the same texture.</p>
+      <div class="grid-3">
+        <div class="card bg-tile"><div class="bg-demo bg-void"></div><div class="bg-info"><strong>Void</strong><p>Page base: black with violet glow at top left and a whisper of cyan on the right.</p></div></div>
+        <div class="card bg-tile"><div class="bg-demo bg-glitter"></div><div class="bg-info"><strong>Glitter black</strong><p>Hero and ritual: tiny sparkles in all five neons, two layers twinkling out of step.</p></div></div>
+        <div class="card bg-tile"><div class="bg-demo bg-brick"></div><div class="bg-info"><strong>Brick wall</strong><p>Header, custom orders, gallery. Darkened 30 to 50% so neon reads on top.</p></div></div>
+        <div class="card bg-tile"><div class="bg-demo bg-pattern"></div><div class="bg-info"><strong>Pattern tile</strong><p>Marquee band and product grid, under a 55 to 78% black veil.</p></div></div>
+        <div class="card bg-tile"><div class="bg-demo bg-tiedye"></div><div class="bg-info"><strong>Tie dye</strong><p>Launch-drop section: soft blooms of pink, cyan, violet, and yellow on near black.</p></div></div>
+        <div class="card bg-tile"><div class="bg-demo bg-plum"></div><div class="bg-info"><strong>Plum band</strong><p>Newsletter and contact: #3a193b → #171222 gradient with violet borders.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 08 Rules -->
+    <section class="g-section" id="rules">
+      <div class="g-head"><span>08</span><h2>Do &amp; <em>Don’t</em></h2></div>
+      <div class="grid-2">
+        <div class="card rules do"><h3>Do</h3><ul><li>Put one Sacramento word in every big headline, and make it glow pink.</li><li>Start every section with a cyan eyebrow.</li><li>Use real product photos with the pink card border and glow.</li><li>Rotate the four marquee styles across rows of links or buttons.</li><li>Keep body copy muted gray so the neon has room to shine.</li></ul></div>
+        <div class="card rules dont"><h3>Don’t</h3><ul><li>Put neon text on a light background, or any mark on white.</li><li>Fill large areas with flat neon color.</li><li>Set whole sentences in Sacramento.</li><li>Stack more than one neon hand mark in the same view.</li><li>Invent new glow recipes; use the three tokens above.</li></ul></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <a class="wordmark" href="index.html"><img src="assets/logo-wordmark.png" alt="Nail'd It!" /></a>
+      <p>Your next favorite detail<br />starts here.</p>
+      <div class="footer-links"><a href="index.html">Home</a><a href="ritual.html">The ritual</a><a href="brand-guide.html">Brand style guide</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 Nail’d It! All rights reserved.</span><span>Press on. Stand out.</span><span>Brand style guide</span></div>
+  </footer>
+</div>
+</body>
+</html>

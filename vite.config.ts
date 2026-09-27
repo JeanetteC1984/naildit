@@ -3,8 +3,9 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
-import { defineConfig, type Plugin, type ViteDevServer } from "vite";
+import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import { checkoutApi } from "./server/checkout";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -203,10 +204,41 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
+// Stripe Checkout API in dev — same handler the Express server uses in production.
+function vitePluginCheckoutApi(): Plugin {
+  return {
+    name: "naildit-checkout-api",
+    configureServer(server: ViteDevServer) {
+      const handler = checkoutApi(path.join(PROJECT_ROOT, "client", "public", "data", "ops-products.json"));
+      server.middlewares.use((req, res, next) => {
+        // Re-read .env on each API call so a newly pasted key works without restarting.
+        if (req.url?.startsWith("/api/checkout")) {
+          const env = loadEnv(server.config.mode, PROJECT_ROOT, "");
+          for (const key of ["STRIPE_SECRET_KEY", "PUBLIC_SITE_URL"]) if (env[key]) process.env[key] = env[key];
+        }
+        handler(req, res, next);
+      });
+    },
+  };
+}
 
-export default defineConfig({
-  plugins,
+// The public/__manus__ folder (debug-collector.js) only matters to the dev preview — keep it out of the production build.
+function vitePluginStripManusFromBuild(): Plugin {
+  return {
+    name: "naildit-strip-manus",
+    apply: "build",
+    closeBundle() {
+      fs.rmSync(path.resolve(PROJECT_ROOT, "dist", "public", "__manus__"), { recursive: true, force: true });
+    },
+  };
+}
+
+export default defineConfig(({ command }) => ({
+  // Manus preview tooling (runtime, debug collector, storage proxy, jsx-loc) runs in local dev only, never in the production build.
+  plugins:
+    command === "serve"
+      ? [vitePluginCheckoutApi(), react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy()]
+      : [react(), tailwindcss(), vitePluginStripManusFromBuild()],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -238,4 +270,4 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
-});
+}));

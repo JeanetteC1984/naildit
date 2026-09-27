@@ -1,0 +1,132 @@
+{
+  "products": [
+    {
+      "name": "Wild for Wildflowers",
+      "price": "$24",
+      "mood": "Wild for Wildflowers",
+      "detail": "Hand-painted florals · long almond",
+      "image": "/products/wildflowers-box.png",
+      "accent": "#e00078",
+      "badge": "Hand-painted",
+      "description": "Electric pink glitter meets watercolor wildflowers. Accent nails bloom with teal peonies, coral poppies, and buttery-yellow petals over a hot-pink base — handmade with care, one set at a time.",
+      "gallery": [
+        "/products/wildflowers-box.png",
+        "/products/wildflowers-hands.png",
+        "/products/wildflowers-5.png",
+        "/products/wildflowers-6.png"
+      ]
+    },
+    {
+      "name": "Love Letters",
+      "price": "$24",
+      "mood": "Love Letters",
+      "detail": "Romantic red · glossy almond",
+      "image": "/products/love-letters-box.png",
+      "accent": "#d92059",
+      "badge": "New drop",
+      "description": "Classic red with a love-note twist. Hand-drawn hearts, envelopes, and lace-like filigree sit alongside ruby glitter accents — made for anniversaries, date nights, and everyday romance.",
+      "gallery": [
+        "/products/love-letters-box.png",
+        "/products/love-letters-1.png",
+        "/products/love-letters-2.png",
+        "/products/love-letters-3.png",
+        "/products/love-letters-4.png",
+        "/products/love-letters-5.png",
+        "/products/love-letters-6.png"
+      ]
+    },
+    {
+      "name": "Golden Afternoon",
+      "price": "$24",
+      "mood": "Golden Afternoon",
+      "detail": "Warm foil · chrome gold",
+      "image": "/products/golden-afternoon-box.png",
+      "accent": "#e3a62b",
+      "badge": "Golden florals",
+      "description": "Warm gold foil and amber florals over a soft peach-orange base. Metallic accent nails catch the light for a set that feels like a golden-hour glow.",
+      "gallery": [
+        "/products/golden-afternoon-box.png",
+        "/products/golden-afternoon-1.png",
+        "/products/golden-afternoon-2.png",
+        "/products/golden-afternoon-3.png",
+        "/products/golden-afternoon-4.png",
+        "/products/golden-afternoon-5.png",
+        "/products/golden-afternoon-6.png"
+      ]
+    },
+    {
+      "name": "Spidergirl Lives!",
+      "price": "$24",
+      "mood": "Halloween",
+      "detail": "Halloween themed set that focuses on our eight legged friends.",
+      "image": "/products/spider1.png",
+      "accent": "#f445a1",
+      "badge": "New drop",
+      "description": "This is a test to see if the product addition works the way it should",
+      "gallery": [
+        "/products/spider2.png",
+        "/products/spider3.png",
+        "/products/spidernails2cut-2.png",
+        "/products/spidernails2cut-2.png"
+      ]
+    },
+    {
+      "name": "Leaves of Change",
+      "price": "$24",
+      "mood": "Golden Afternoon",
+      "detail": "Hand stamped leaves falling ",
+      "image": "/products/fallnailscut-1-copy.png",
+      "accent": "#203206",
+      "badge": "New drop",
+      "description": "The leaves fall as they change to the golden representation shown in the nails",
+      "gallery": [
+        "/products/fallnailscut-1-copy.png",
+        "/products/fallnailscut-3.png",
+        "/products/fallnailscut-2-copy.png"
+      ]
+    },
+    {
+      "name": "Bump in the Night",
+      "price": "$24",
+      "mood": "Halloween",
+      "detail": "Halloween themed set that focuses on ghosts.",
+      "image": "/products/ghostnailscut-1-copy.png",
+      "accent": "#f445a1",
+      "badge": "New drop",
+      "description": "scary and spectacular",
+      "gallery": [
+        "/products/ghostnailscut-1.png"
+      ]
+    }
+  ],
+  "moods": [
+    {
+      "name": "Wild for Wildflowers",
+      "kicker": "Bloom loud",
+      "text": "Hand-painted florals over hot pink, glitter accents included.",
+      "tone": "hot",
+      "product": "Wild for Wildflowers"
+    },
+    {
+      "name": "Love Letters",
+      "kicker": "Write it in red",
+      "text": "Romantic red with hand-stamped linework and a glitter accent nail.",
+      "tone": "plum",
+      "product": "Love Letters"
+    },
+    {
+      "name": "Golden Afternoon",
+      "kicker": "Catch the light",
+      "text": "Warm foil, chrome gold, and reflective florals for golden hour.",
+      "tone": "gold",
+      "product": "Golden Afternoon"
+    },
+    {
+      "name": "Halloween",
+      "kicker": "Halloween",
+      "text": "What lies behind the veil?",
+      "tone": "gold",
+      "product": "Halloween"
+    }
+  ]
+}

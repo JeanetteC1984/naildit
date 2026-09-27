@@ -111,3 +111,12 @@ temp/
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json
 .project-config.json
+
+# Local env variants (keep only the blank template)
+.env.*
+!.env.example
+
+# Local tool logs and Windows/OneDrive folder files
+.manus-logs/
+desktop.ini
+desktop.ico
