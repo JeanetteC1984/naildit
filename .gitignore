@@ -120,3 +120,6 @@ client/public/__manus__/version.json
 .manus-logs/
 desktop.ini
 desktop.ico
+
+# Brand material lives outside the storefront repo
+html-version/
