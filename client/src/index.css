@@ -167,9 +167,9 @@ button,a,input { font:inherit; } button { cursor:pointer; } a { color:inherit; t
 .mood-card.has-cover>.mood-set-count,.mood-card.has-cover>.mood-arrow { position:absolute; }
 .mood-card.has-cover .mood-copy { color:#e4e0ee; }
 .mood-card.has-cover>.mood-set-count { background:rgba(3,3,4,.75); }
-.collection-header { justify-content:space-between; align-items:center; text-align:right; }
+.collection-header { justify-content:space-between; align-items:center; text-align:left; }
 .collection-logo { width:clamp(190px,21vw,280px); height:auto; flex-shrink:0; }
-.collection-header .collection-description { margin:18px 0 0 auto; }
+.collection-header .collection-description { margin:18px 0 0; }
 @media (max-width:900px){.collection-header{text-align:left}.collection-header .collection-description{margin-left:0}.collection-logo{width:150px;margin-bottom:22px}}
 .collection-section { padding-top:56px; padding-bottom:64px; }
 .custom-section { padding-top:56px; }
@@ -268,3 +268,16 @@ button,a,input { font:inherit; } button { cursor:pointer; } a { color:inherit; t
 .quickview-scroll::-webkit-scrollbar,.lightbox-scroll::-webkit-scrollbar,.collection-modal::-webkit-scrollbar { width:10px; }
 .quickview-scroll::-webkit-scrollbar-thumb,.lightbox-scroll::-webkit-scrollbar-thumb,.collection-modal::-webkit-scrollbar-thumb { border-width:3px; }
 .quickview-scroll::-webkit-scrollbar-track,.lightbox-scroll::-webkit-scrollbar-track,.collection-modal::-webkit-scrollbar-track { background:transparent; }
+
+/* Header logo: 10% smaller than the shared .wordmark size (footer unchanged) */
+.site-header .wordmark { width:137px; height:137px; }
+@media (max-width:560px){.site-header .wordmark{width:91px;height:91px}}
+/* Neon Nail'd It! wordmark is wide, so its header and footer boxes keep the old height but widen to fit */
+.wordmark { width:246px; }
+.site-header .wordmark { width:222px; }
+@media (max-width:560px){.wordmark{width:163px}.site-header .wordmark{width:147px}}
+/* Shopping-bag hero logo is wide: shrink it a touch so it sits inside the round badge */
+.hero-art .hero-sticker img { transform:scale(.88); }
+/* Product cards (grid + collection popup) use the site fonts: script titles like the mood cards and quick view, and one button font matching .primary-button */
+.product-title-row h3 { font:400 28px/1.05 'Sacramento',cursive; letter-spacing:0; }
+.add-button,.product-grid .product-card:nth-child(n) .add-button { font:800 12px 'Plus Jakarta Sans',sans-serif; letter-spacing:.1em; text-transform:uppercase; }
