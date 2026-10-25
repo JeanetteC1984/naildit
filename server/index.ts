@@ -33,7 +33,7 @@ async function startServer() {
 
   app.use(checkoutApi(path.join(staticPath, "data", "ops-products.json")));
   // Nail'd Ops at /ops (password protected) and the products it publishes.
-  app.use(opsApp(path.resolve(__dirname, "..", "ops-app")));
+  app.use(opsApp(path.resolve(__dirname, "..", "ops-app"), path.join(staticPath, "data", "ops-products.json")));
   app.use(storefrontData());
   app.use(express.static(staticPath));
 

@@ -5,7 +5,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import express from "express";
 import { checkoutApi } from "./server/checkout";
+import { opsApp, storefrontData } from "./server/ops";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -209,7 +211,15 @@ function vitePluginCheckoutApi(): Plugin {
   return {
     name: "naildit-checkout-api",
     configureServer(server: ViteDevServer) {
-      const handler = checkoutApi(path.join(PROJECT_ROOT, "client", "public", "data", "ops-products.json"));
+      const catalogPath = path.join(PROJECT_ROOT, "client", "public", "data", "ops-products.json");
+      const handler = checkoutApi(catalogPath);
+      // Nail'd Ops at /ops and the products it publishes, same as the Express server.
+      const env = loadEnv(server.config.mode, PROJECT_ROOT, "");
+      for (const key of ["OPS_PASSWORD", "OPS_SESSION_SECRET", "DATABASE_URL"]) if (env[key]) process.env[key] = env[key];
+      const ops = express();
+      ops.use(opsApp(path.join(PROJECT_ROOT, "ops-app"), catalogPath));
+      ops.use(storefrontData());
+      server.middlewares.use(ops);
       server.middlewares.use((req, res, next) => {
         // Re-read .env on each API call so a newly pasted key works without restarting.
         if (req.url?.startsWith("/api/checkout")) {

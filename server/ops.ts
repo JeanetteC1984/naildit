@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import express, { type Request, type Response, type NextFunction } from "express";
-import { getStore, type Order, type Store } from "./store";
+import { getStore, loadCatalog, type Order, type Store } from "./store";
 
 // Nail'd Ops on the web: the same app as the desktop version, served at /ops behind a password.
 // Its data (normally kept only on the PC) is saved to the shared store instead, so it works from
@@ -177,9 +177,32 @@ async function importStoreOrders(store: Store, state: Record<string, string>) {
   return next;
 }
 
+// The first time Ops opens online it has no products yet and would fill in its three demo sets,
+// which its automatic publish would then push over the live catalog. Start it from the catalog
+// the store already shows instead.
+const OPS_PRODUCTS = "naildit-ops-products";
+type CatalogProduct = Record<string, unknown> & { name?: string; mood?: string };
+type CatalogMood = { name?: string; kicker?: string; text?: string; tone?: string };
+
+async function seedProducts(store: Store, state: Record<string, string>, catalogPath: string) {
+  if (state[OPS_PRODUCTS]) return state;
+  const catalog = (await loadCatalog(catalogPath)) as { products?: CatalogProduct[]; moods?: CatalogMood[] } | null;
+  if (!catalog?.products?.length) return state;
+  const moodsLeft = new Map((catalog.moods ?? []).map((m) => [m.name, m]));
+  const products = catalog.products.map((p, i) => {
+    const mood = moodsLeft.get(p.mood);
+    moodsLeft.delete(p.mood);
+    const slug = String(p.name ?? i).toLowerCase().replace(/[^a-z0-9]+/g, "");
+    return { id: `prod-${slug || i}`, ...p, ...(mood ? { moodKicker: mood.kicker ?? "", moodBlurb: mood.text ?? "", tone: mood.tone ?? "hot" } : {}) };
+  });
+  const value = JSON.stringify(products);
+  await store.setState(OPS_PRODUCTS, value);
+  return { ...state, [OPS_PRODUCTS]: value };
+}
+
 const IMAGE_TYPES: Record<string, string> = { ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".avif": "image/avif" };
 
-export function opsApp(opsDir: string) {
+export function opsApp(opsDir: string, catalogPath: string) {
   const router = express.Router();
   const store = getStore();
 
@@ -251,7 +274,8 @@ export function opsApp(opsDir: string) {
     } catch {
       return res.status(503).send("Nail'd Ops hasn't been added to this server yet.");
     }
-    const shim = syncShim(await importStoreOrders(store, await store.getState()));
+    const state = await seedProducts(store, await store.getState(), catalogPath);
+    const shim = syncShim(await importStoreOrders(store, state));
     html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (m) => `${m}\n${shim}`) : shim + html;
     res.type("html").send(html);
   });
