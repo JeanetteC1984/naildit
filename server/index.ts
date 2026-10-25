@@ -3,6 +3,7 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { checkoutApi } from "./checkout";
+import { opsApp, storefrontData } from "./ops";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +16,8 @@ try {
 
 async function startServer() {
   const app = express();
+  // Render sits in front of the app; trust its forwarded address and https.
+  app.set("trust proxy", 1);
   const server = createServer(app);
 
   // Serve static files from dist/public in production
@@ -29,6 +32,9 @@ async function startServer() {
   });
 
   app.use(checkoutApi(path.join(staticPath, "data", "ops-products.json")));
+  // Nail'd Ops at /ops (password protected) and the products it publishes.
+  app.use(opsApp(path.resolve(__dirname, "..", "ops-app")));
+  app.use(storefrontData());
   app.use(express.static(staticPath));
 
   // Handle client-side routing - serve index.html for all routes

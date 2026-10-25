@@ -123,3 +123,6 @@ desktop.ico
 
 # Brand material lives outside the storefront repo
 html-version/
+
+# Local stand-in for the online database (server/store.ts)
+.data/

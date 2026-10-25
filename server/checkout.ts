@@ -1,5 +1,5 @@
-import fs from "node:fs";
 import Stripe from "stripe";
+import { getStore, loadCatalog, type Order } from "./store";
 
 // Prices are decided here on the server, never taken from the browser.
 // The three launch sets are built in; anything the Operations app publishes to
@@ -38,16 +38,12 @@ export class CheckoutError extends Error {
   }
 }
 
-function loadPrices(opsCatalogPath: string): Record<string, number> {
+async function loadPrices(opsCatalogPath: string): Promise<Record<string, number>> {
   const prices = { ...LAUNCH_SETS };
-  try {
-    const catalog = JSON.parse(fs.readFileSync(opsCatalogPath, "utf-8")) as { products?: { name?: string; price?: string }[] };
-    for (const p of catalog.products ?? []) {
-      const dollars = Number(String(p.price ?? "").replace(/[^0-9.]/g, ""));
-      if (p.name && dollars > 0) prices[p.name] = Math.round(dollars * 100);
-    }
-  } catch {
-    /* no ops catalog published — launch sets only */
+  const catalog = await loadCatalog(opsCatalogPath);
+  for (const p of catalog?.products ?? []) {
+    const dollars = Number(String(p.price ?? "").replace(/[^0-9.]/g, ""));
+    if (p.name && dollars > 0) prices[p.name] = Math.round(dollars * 100);
   }
   return prices;
 }
@@ -59,7 +55,7 @@ export async function createCheckoutSession(body: unknown, origin: string, opsCa
   if (!Array.isArray(items) || items.length === 0) throw new CheckoutError(400, "Your bag is empty.");
   if (items.length > 20) throw new CheckoutError(400, "That's a lot of sets — please split it into smaller orders.");
 
-  const prices = loadPrices(opsCatalogPath);
+  const prices = await loadPrices(opsCatalogPath);
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
   const metadata: Record<string, string> = {};
 
@@ -109,9 +105,53 @@ export async function getCheckoutSummary(sessionId: string) {
   };
 }
 
+// Stripe calls this after each payment so the order is saved where Nail'd Ops can see it.
+// Needs STRIPE_WEBHOOK_SECRET (whsec_…) from the webhook endpoint set up in the Stripe dashboard.
+export async function handleStripeWebhook(rawBody: string, signature: string | undefined) {
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+  if (!secret) throw new CheckoutError(503, "Webhook isn't set up yet.");
+  let event: Stripe.Event;
+  try {
+    event = getStripe().webhooks.constructEvent(rawBody, signature ?? "", secret);
+  } catch {
+    throw new CheckoutError(400, "Bad signature.");
+  }
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
+    const session = await getStripe().checkout.sessions.retrieve((event.data.object as Stripe.Checkout.Session).id, { expand: ["line_items"] });
+    const order: Order = {
+      id: session.id,
+      createdAt: new Date(session.created * 1000).toISOString(),
+      email: session.customer_details?.email ?? null,
+      name: session.customer_details?.name ?? null,
+      total: session.amount_total,
+      shipping: session.collected_information?.shipping_details ?? null,
+      items: session.line_items?.data.map((li) => ({ name: li.description, quantity: li.quantity, amount: li.amount_total })) ?? [],
+      metadata: (session.metadata ?? {}) as Record<string, string>,
+      paid: session.payment_status === "paid",
+    };
+    await getStore().saveOrder(order);
+  }
+  return { received: true };
+}
+
 // Tiny framework-agnostic handler so the Vite dev server and the Express server share one code path.
 type Req = { method?: string; url?: string; headers: Record<string, string | string[] | undefined>; on: (e: string, cb: (chunk?: any) => void) => void };
 type Res = { writeHead: (status: number, headers: Record<string, string>) => void; end: (body: string) => void };
+
+function readBody(req: Req, limit: number) {
+  return new Promise<string>((resolve, reject) => {
+    // Collect raw bytes: Stripe's signature check needs the body exactly as sent.
+    const chunks: Buffer[] = [];
+    let size = 0;
+    req.on("data", (chunk) => {
+      chunks.push(Buffer.from(chunk));
+      size += chunk.length;
+      if (size > limit) reject(new CheckoutError(413, "Request too large."));
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
+    req.on("error", reject);
+  });
+}
 
 export function checkoutApi(opsCatalogPath: string) {
   return async (req: Req, res: Res, next: () => void) => {
@@ -122,17 +162,14 @@ export function checkoutApi(opsCatalogPath: string) {
     };
     try {
       if (req.method === "POST" && url.pathname === "/api/checkout") {
-        const raw = await new Promise<string>((resolve, reject) => {
-          let data = "";
-          req.on("data", (chunk) => {
-            data += chunk;
-            if (data.length > 50_000) reject(new CheckoutError(413, "Request too large."));
-          });
-          req.on("end", () => resolve(data));
-          req.on("error", reject);
-        });
+        const raw = await readBody(req, 50_000);
         const origin = process.env.PUBLIC_SITE_URL?.replace(/\/+$/, "") || `${req.headers["x-forwarded-proto"] ?? "http"}://${req.headers.host}`;
         return send(200, await createCheckoutSession(JSON.parse(raw || "{}"), origin, opsCatalogPath));
+      }
+      if (req.method === "POST" && url.pathname === "/api/stripe/webhook") {
+        const raw = await readBody(req, 1_000_000);
+        const sig = req.headers["stripe-signature"];
+        return send(200, await handleStripeWebhook(raw, Array.isArray(sig) ? sig[0] : sig));
       }
       if (req.method === "GET" && url.pathname === "/api/checkout/session") {
         return send(200, await getCheckoutSummary(url.searchParams.get("id") ?? ""));
