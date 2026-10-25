@@ -619,7 +619,7 @@
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c2.5 2.5 4 6 4 10.5S13 21 12 22c-1-1-4-5-4-9.5S9.5 4.5 12 2Z"></path><path d="M9 15c-2 .5-3 2-3 5 3 0 4.5-1 5-3"></path><path d="M15 15c2 .5 3 2 3 5-3 0-4.5-1-5-3"></path><circle cx="12" cy="10" r="1.6" fill="currentColor" stroke="none"></circle></svg>
             Launch Plan
           </a>
-          <a class="btn btn-secondary btn-small" href="./nail-club-launch-plan.html" target="_blank" rel="noopener">
+          <a class="btn btn-secondary btn-small" href="./nail-club-launch-plan.html">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7 12 3 4 7v10l8 4 8-4V7Z"></path><path d="M4 7l8 4 8-4M12 11v10"></path></svg>
             Nail Club Plan
           </a>
@@ -1048,6 +1048,7 @@
               <p>Fill out a product here, then copy the ready-to-paste code straight into the storefront's source.</p>
             </div>
             <div class="view-actions">
+              <button class="btn btn-primary" type="button" id="publishStorefrontBtn">Publish to Storefront</button>
               <button class="btn btn-secondary" type="button" id="copyAllProductsBtn">Copy Full Array</button>
               <button class="btn btn-primary" type="button" data-open-form="products">+ New Product</button>
             </div>
@@ -1688,6 +1689,7 @@
 
   <div class="toast" id="toast" role="status" aria-atomic="true"></div>
 
+  <script src="./ops-integrity.js"></script>
   <script>
     "use strict";
 
@@ -1735,7 +1737,7 @@
     }
     function saveCollection(name, arr) {
       try { localStorage.setItem(STORE_PREFIX + name, JSON.stringify(arr)); }
-      catch { showToast("Could not save — this browser may be blocking local storage.", "warn"); }
+      catch { document.querySelector("#storageBanner").hidden = false; }
     }
 
     const SEED = {
@@ -1819,7 +1821,7 @@
     function todayISO(offsetDays = 0) {
       const d = new Date();
       d.setDate(d.getDate() + offsetDays);
-      return d.toISOString().slice(0, 10);
+      return localISO(d);
     }
 
     const data = {};
@@ -1829,7 +1831,21 @@
       if (existing === null) saveCollection(name, data[name]);
     });
 
-    function persist(name) { saveCollection(name, data[name]); }
+    const savedCollections = Object.fromEntries(COLLECTIONS.map(name => [name, JSON.stringify(data[name])]));
+    function persistMany(names) {
+      try {
+        const entries = names.map(name => [STORE_PREFIX + name, JSON.stringify(data[name])]);
+        OpsIntegrity.writeTransaction(localStorage, entries);
+        names.forEach((name, i) => { savedCollections[name] = entries[i][1]; });
+        if (names.includes("products")) publishCatalog(true);
+        return true;
+      } catch {
+        names.forEach(name => { data[name] = JSON.parse(savedCollections[name]); });
+        showToast("Could not save. Your changes were not applied. Export a backup and check available storage.", "warn");
+        return false;
+      }
+    }
+    function persist(name) { return persistMany([name]); }
 
     function loadMarketingNotes() {
       try { const raw = localStorage.getItem(NOTES_KEY); return raw !== null ? raw : DEFAULT_MARKETING_NOTES; }
@@ -2137,7 +2153,7 @@
         const idx = list.findIndex(r => r.id === id);
         if (idx >= 0) list[idx] = { ...list[idx], ...record };
         else list.push(record);
-        persist(collection);
+        if (!persist(collection)) return;
         $(`#dialog-${collection}`).close();
         renderAll();
         showToast(`${def.title.new.replace("New ", "")} saved.`);
@@ -2403,7 +2419,7 @@
       const record = { id, productName, components, notes: form.elements.notes.value.trim(), image: form.elements.image.value || "", sellPrice: Number(form.elements.sellPrice.value) || 0 };
       const idx = data.recipes.findIndex(r => r.id === id);
       if (idx >= 0) data.recipes[idx] = record; else data.recipes.push(record);
-      persist("recipes");
+      if (!persist("recipes")) return;
       $("#dialog-recipes").close();
       renderAll();
       showToast("Recipe saved.");
@@ -2457,6 +2473,7 @@
       if (!recipe) { showToast("Create a recipe first, then log production against it.", "warn"); return; }
       if (qtyMade <= 0) { showToast("Quantity made must be greater than zero.", "warn"); return; }
 
+      if (recipe.components.some(c => !data.inventory.some(i => i.id === c.itemId))) { showToast("This recipe has a missing supply. Edit the recipe before logging production.", "warn"); return; }
       const components = [];
       const shortItems = [];
       let totalCost = 0;
@@ -2475,8 +2492,7 @@
         qtyMade, components, totalCost, notes: form.elements.notes.value.trim(),
       };
       data.production.push(record);
-      persist("production");
-      persist("inventory");
+      if (!persistMany(["production", "inventory"])) return;
       $("#dialog-production").close();
       renderAll();
       if (shortItems.length) showToast(`Logged — ran short on ${shortItems.join(", ")}. Inventory is now negative for those.`, "warn");
@@ -2648,7 +2664,7 @@
       };
       const idx = data.invoices.findIndex(inv => inv.id === id);
       if (idx >= 0) data.invoices[idx] = record; else data.invoices.push(record);
-      persist("invoices");
+      if (!persist("invoices")) return;
       $("#dialog-invoices").close();
       renderAll();
       showToast(`${record.number} saved.`);
@@ -2719,21 +2735,22 @@
     }
 
     function soLineItemTotal(line) {
-      const item = data.inventory.find(i => i.id === line.itemId);
-      return (item ? Number(item.cost) : 0) * (Number(line.qty) || 0);
+      return OpsIntegrity.supplySnapshot(line, data.inventory).unitCost * (Number(line.qty) || 0);
     }
     function soOrderTotal(order) {
       return order.items.reduce((t, l) => t + soLineItemTotal(l), 0);
     }
 
     function soLineRowEl(line = { itemId: "", qty: 1 }) {
+      line = OpsIntegrity.supplySnapshot(line, data.inventory);
       const item = data.inventory.find(i => i.id === line.itemId);
-      const name = item ? item.name : "Missing inventory item";
+      const name = line.itemName;
       const metaParts = [];
-      if (item?.supplier) metaParts.push(item.supplier);
-      metaParts.push(item ? `${money(item.cost)}/unit` : "not in inventory");
+      if (line.supplier) metaParts.push(line.supplier);
+      metaParts.push(`${money(line.unitCost)}/unit`);
       const row = document.createElement("div");
       row.className = "component-row";
+      row.supplySnapshot = line;
       row.innerHTML = `
         <input type="hidden" data-role="so-item" value="${escapeHTML(line.itemId)}">
         <div class="component-item-info">
@@ -2741,7 +2758,7 @@
           <span class="component-item-meta">${escapeHTML(metaParts.join(" · "))}</span>
         </div>
         <input data-role="so-qty" type="number" min="0" step="1" value="${line.qty}" placeholder="Qty" aria-label="Quantity of ${escapeHTML(name)} to order">
-        <span class="so-line-total" data-role="so-line-total">${money((item?.cost || 0) * (Number(line.qty) || 0))}</span>
+        <span class="so-line-total" data-role="so-line-total">${money(soLineItemTotal(line))}</span>
         <button class="icon-button" type="button" data-role="remove-so-row" aria-label="Remove ${escapeHTML(name)}"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>`;
       return row;
     }
@@ -2756,6 +2773,7 @@
 
     function readSOLineRows() {
       return $$("#soLineRows .component-row").map(row => ({
+        ...row.supplySnapshot,
         itemId: row.querySelector("[data-role=so-item]").value,
         qty: Number(row.querySelector("[data-role=so-qty]").value) || 0,
       })).filter(l => l.itemId && l.qty > 0);
@@ -2765,8 +2783,7 @@
       $$("#soLineRows .component-row").forEach(row => {
         const itemId = row.querySelector("[data-role=so-item]").value;
         const qty = Number(row.querySelector("[data-role=so-qty]").value) || 0;
-        const item = data.inventory.find(i => i.id === itemId);
-        row.querySelector("[data-role=so-line-total]").textContent = money((item?.cost || 0) * qty);
+        row.querySelector("[data-role=so-line-total]").textContent = money(soLineItemTotal({ ...row.supplySnapshot, itemId, qty }));
       });
       $("#soEmptyHint").hidden = $$("#soLineRows .component-row").length > 0;
       const total = readSOLineRows().reduce((t, l) => t + soLineItemTotal(l), 0);
@@ -2885,7 +2902,7 @@
       };
       const idx = data.supplyOrders.findIndex(o => o.id === id);
       if (idx >= 0) data.supplyOrders[idx] = record; else data.supplyOrders.push(record);
-      persist("supplyOrders");
+      if (!persist("supplyOrders")) return;
       $("#dialog-supplyorders").close();
       renderAll();
       showToast("Supply order saved.");
@@ -2896,7 +2913,7 @@
       currentSOPreview = order;
       const total = soOrderTotal(order);
       const statusColor = { Draft: "#6b6485", Ordered: "#0e7f92", Received: "#157a4a" }[order.status] || "#6b6485";
-      const suppliers = [...new Set(order.items.map(l => data.inventory.find(i => i.id === l.itemId)?.supplier).filter(Boolean))];
+      const suppliers = [...new Set(order.items.map(l => OpsIntegrity.supplySnapshot(l, data.inventory).supplier).filter(Boolean))];
       $("#soPreview").innerHTML = `
         <span class="invoice-status-stamp" style="background:${statusColor}22; color:${statusColor};">${escapeHTML(order.status)}</span>
         <div class="report-header">
@@ -2914,7 +2931,8 @@
         <div class="report-table-wrap"><table>
           <thead><tr><th>Item</th><th>Supplier</th><th class="cell-num">Qty</th><th class="cell-num">Unit Cost</th><th class="cell-num">Line Total</th></tr></thead>
           <tbody>${order.items.map(l => {
-            const item = data.inventory.find(i => i.id === l.itemId);
+            const snapshot = OpsIntegrity.supplySnapshot(l, data.inventory);
+          const item = { name: snapshot.itemName, supplier: snapshot.supplier, cost: snapshot.unitCost };
             return `<tr><td>${escapeHTML(item ? item.name : "Deleted item")}</td><td>${escapeHTML(item?.supplier) || "—"}</td><td class="cell-num">${l.qty}</td><td class="cell-num">${money(item?.cost || 0)}</td><td class="cell-num">${money(soLineItemTotal(l))}</td></tr>`;
           }).join("")}</tbody>
         </table></div>
@@ -2945,7 +2963,8 @@
       const order = currentSOPreview;
       if (!order) return;
       const rows = order.items.map(l => {
-        const item = data.inventory.find(i => i.id === l.itemId);
+        const snapshot = OpsIntegrity.supplySnapshot(l, data.inventory);
+          const item = { name: snapshot.itemName, supplier: snapshot.supplier, cost: snapshot.unitCost };
         return [order.date, order.status, item ? item.name : "Deleted item", item?.supplier || "", String(l.qty), (item?.cost || 0).toFixed(2), soLineItemTotal(l).toFixed(2)];
       });
       downloadCSV(`nailditops-supply-order-${order.date}.csv`, toCSV(["Date", "Status", "Item", "Supplier", "Qty", "Unit Cost", "Line Total"], rows));
@@ -2959,13 +2978,13 @@
         .filter(o => filter === "all" || o.status === filter)
         .filter(o => {
           if (!q) return true;
-          const suppliers = o.items.map(l => data.inventory.find(i => i.id === l.itemId)?.supplier || "").join(" ");
+          const suppliers = o.items.map(l => OpsIntegrity.supplySnapshot(l, data.inventory).supplier || "").join(" ");
           return `${suppliers} ${o.notes || ""}`.toLowerCase().includes(q);
         })
         .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
       $("#soBody").innerHTML = rows.length ? rows.map(o => {
-        const suppliers = [...new Set(o.items.map(l => data.inventory.find(i => i.id === l.itemId)?.supplier).filter(Boolean))];
+        const suppliers = [...new Set(o.items.map(l => OpsIntegrity.supplySnapshot(l, data.inventory).supplier).filter(Boolean))];
         return `
         <tr>
           <td class="cell-strong">${dateFmt(o.date)}</td>
@@ -3024,7 +3043,7 @@
           </div></td>
         </tr>`).join("") : `<tr><td colspan="7" class="empty-note">No invoices match your filters.</td></tr>`;
 
-      const now = new Date(); const thisMonth = now.toISOString().slice(0, 7);
+      const now = new Date(); const thisMonth = localISO(now).slice(0, 7);
       const outstanding = data.invoices.filter(inv => inv.status !== "Paid").reduce((t, inv) => t + invoiceTotal(inv), 0);
       const paidThisMonth = data.invoices.filter(inv => inv.status === "Paid" && inv.date?.slice(0, 7) === thisMonth).reduce((t, inv) => t + invoiceTotal(inv), 0);
 
@@ -3073,7 +3092,7 @@
       if (!pendingDelete) return;
       const { collection, id } = pendingDelete;
       data[collection] = data[collection].filter(r => r.id !== id);
-      persist(collection);
+      if (!persist(collection)) return;
       pendingDelete = null;
       $("#dialog-confirm").close();
       renderAll();
@@ -3173,7 +3192,7 @@
 
       const lowStock = data.inventory.filter(isLowStock);
 
-      const thisMonth = now.toISOString().slice(0, 7);
+      const thisMonth = localISO(now).slice(0, 7);
       const monthOrders = data.orders.filter(o => o.status !== "Cancelled" && o.orderDate?.slice(0, 7) === thisMonth);
       const revenue = monthOrders.reduce((t, o) => t + Number(o.total || 0), 0);
       const monthExpenses = data.expenses.filter(e => e.date?.slice(0, 7) === thisMonth);
@@ -3325,7 +3344,7 @@
       const item = $("#needItem").value.trim();
       if (!item) return;
       data.needs.push({ id: uid(), item, category: $("#needCategory").value, added: todayISO(0) });
-      persist("needs");
+      if (!persist("needs")) return;
       $("#needForm").reset();
       renderNeeds();
       showToast("Added to Supplies Needed.");
@@ -3337,7 +3356,7 @@
         const need = data.needs.find(n => n.id === logBtn.dataset.logNeed);
         if (!need) return;
         data.needs = data.needs.filter(n => n.id !== need.id);
-        persist("needs");
+        if (!persist("needs")) return;
         renderNeeds();
         openForm("expenses");
         $("#form-expenses").elements.category.value = need.category;
@@ -3347,7 +3366,7 @@
       const removeBtn = e.target.closest("[data-remove-need]");
       if (removeBtn) {
         data.needs = data.needs.filter(n => n.id !== removeBtn.dataset.removeNeed);
-        persist("needs");
+        if (!persist("needs")) return;
         renderNeeds();
       }
     });
@@ -3376,7 +3395,7 @@
         </tr>`).join("") : `<tr><td colspan="6" class="empty-note">No expenses match your filters.</td></tr>`;
 
       const now = new Date();
-      const thisMonth = now.toISOString().slice(0, 7);
+      const thisMonth = localISO(now).slice(0, 7);
       const monthTotal = data.expenses.filter(e => e.date?.slice(0, 7) === thisMonth).reduce((t, e) => t + Number(e.amount || 0), 0);
       const allTimeTotal = data.expenses.reduce((t, e) => t + Number(e.amount || 0), 0);
       const byCategory = {};
@@ -3507,6 +3526,49 @@
       if (product) openProductCode(productSnippet(product));
     });
 
+    /* ===== PUBLISH TO STOREFRONT =====
+       Writes the product catalog to the storefront project's public/data/ops-products.json, which
+       the storefront reads at load. Saves automatically on every product change (desktop app only);
+       the button publishes on demand and, outside the desktop app, downloads the file instead. */
+    function buildCatalog() {
+      return {
+        products: data.products.map(p => ({ name: p.name, price: p.price, mood: p.mood, detail: p.detail, image: p.image, accent: p.accent, badge: p.badge, description: p.description, gallery: p.gallery && p.gallery.length ? p.gallery : [p.image] })),
+        moods: data.products.filter(p => p.moodKicker || p.moodBlurb).map(p => ({ name: p.mood, kicker: p.moodKicker || "", text: p.moodBlurb || "", tone: p.tone || "hot", product: p.mood })),
+      };
+    }
+    async function publishCatalog(silent) {
+      const STOREFRONT_FILE_KEY = "nailditops.storefrontCatalogPath";
+      const DEFAULT_STOREFRONT_FILE = "C:/Users/jlcor/OneDrive/Desktop/naildit-launch-storefront/client/public/data/ops-products.json";
+      const invoke = window.__TAURI__?.core?.invoke;
+      const catalog = buildCatalog();
+      if (!invoke) {
+        if (!silent) { downloadCSV("ops-products.json", JSON.stringify(catalog, null, 2)); showToast("Downloaded ops-products.json — put it in the storefront's client/public/data/ folder."); }
+        return;
+      }
+      let path = "";
+      try { path = localStorage.getItem(STOREFRONT_FILE_KEY) || DEFAULT_STOREFRONT_FILE; } catch { path = DEFAULT_STOREFRONT_FILE; }
+      try {
+        // Image fields may hold a file on this PC (e.g. C:\Users\me\pic.png, quotes from "Copy as path" are fine):
+        // copy those into the storefront's public/products folder and publish the web path instead.
+        const cache = new Map();
+        const toWebPath = async raw => {
+          const v = String(raw || "").trim().replace(/^["']+|["']+$/g, "");
+          if (!/^[a-zA-Z]:[\\/]/.test(v)) return v;
+          if (!cache.has(v)) cache.set(v, await invoke("import_image", { src: v, catalogPath: path }));
+          return cache.get(v);
+        };
+        for (const p of catalog.products) {
+          p.image = await toWebPath(p.image);
+          p.gallery = await Promise.all(p.gallery.map(toWebPath));
+        }
+        await invoke("publish_catalog", { path, json: JSON.stringify(catalog, null, 2) });
+        if (!silent) showToast("Published to the storefront.");
+      } catch (err) {
+        showToast(`Couldn't publish to the storefront (${err}).`, "warn");
+      }
+    }
+    $("#publishStorefrontBtn").addEventListener("click", () => publishCatalog(false));
+
     /* ===== PRICING & MARKUP ANALYSIS ===== */
     function pricingHealth(cost, price) {
       if (!price || price <= 0) return "unpriced";
@@ -3622,7 +3684,7 @@
       const active = data.campaigns.filter(c => c.status === "Active").length;
       const planned = data.campaigns.filter(c => c.status === "Planned").length;
       const plannedBudget = data.campaigns.reduce((t, c) => t + Number(c.budget || 0), 0);
-      const thisMonth = now.toISOString().slice(0, 7);
+      const thisMonth = localISO(now).slice(0, 7);
       const actualSpend = data.expenses.filter(e => e.category === "Marketing" && e.date?.slice(0, 7) === thisMonth).reduce((t, e) => t + Number(e.amount || 0), 0);
 
       $("#marketingKpis").innerHTML = `
@@ -3870,7 +3932,8 @@
     };
     const toCSV = (headers, rows) => [headers, ...rows].map(r => r.map(csvEscape).join(",")).join("\r\n");
     function downloadCSV(filename, csvString) {
-      const blob = new Blob(["﻿" + csvString], { type: "text/csv;charset=utf-8;" });
+      const isJSON = filename.endsWith(".json");
+      const blob = new Blob([isJSON ? csvString : "﻿" + csvString], { type: isJSON ? "application/json" : "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = filename;
@@ -3914,7 +3977,8 @@
       const rows = [];
       [...data.supplyOrders].sort((a, b) => (a.date || "").localeCompare(b.date || "")).forEach(o => {
         o.items.forEach(l => {
-          const item = data.inventory.find(i => i.id === l.itemId);
+          const snapshot = OpsIntegrity.supplySnapshot(l, data.inventory);
+          const item = { name: snapshot.itemName, supplier: snapshot.supplier, cost: snapshot.unitCost };
           rows.push([o.date || "", o.status, item ? item.name : "Deleted item", item?.supplier || "", String(l.qty), (item?.cost || 0).toFixed(2), soLineItemTotal(l).toFixed(2)]);
         });
       });
@@ -4038,7 +4102,7 @@
       const [y, m, d] = iso.split("-").map(Number);
       const dt = new Date(y, m - 1, d);
       dt.setDate(dt.getDate() + days);
-      return dt.toISOString().slice(0, 10);
+      return localISO(dt);
     }
 
     /* Every dated, time-sensitive thing across the app, flattened into one list of {date, end, type, color, title, sub}. */
@@ -4085,7 +4149,7 @@
       for (let i = 0; i < 42; i++) {
         const cellDate = new Date(gridStart);
         cellDate.setDate(gridStart.getDate() + i);
-        const iso = cellDate.toISOString().slice(0, 10);
+        const iso = localISO(cellDate);
         const isOutside = cellDate.getMonth() !== month;
         const isToday = iso === today;
         const dayEvents = (byDate.get(iso) || []);
@@ -4173,8 +4237,12 @@
     });
 
     /* ===== EXPORT / IMPORT ===== */
+    const BACKUP_SETTING_KEYS = [THEME_KEY, CONFETTI_KEY, LAUNCH_KEY, LAUNCH_DATE_KEY, MARGIN_TARGET_KEY, INVOICE_COUNTER_KEY, BUSINESS_INFO_KEY, SIDEBAR_HIDDEN_KEY];
     $("#exportBtn").addEventListener("click", () => {
-      const payload = { exportedAt: new Date().toISOString(), data, marketingNotes, dashboardNotes: $("#dashNotes").value };
+      flushMarketingNotes(); flushDashNotes(); flushBusinessInfo();
+      const settings = {};
+      BACKUP_SETTING_KEYS.forEach(key => { const value = localStorage.getItem(key); if (value !== null) settings[key] = value; });
+      const payload = { version: 2, exportedAt: new Date().toISOString(), data, settings, marketingNotes, dashboardNotes: $("#dashNotes").value };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -4193,30 +4261,81 @@
       try {
         const text = await file.text();
         const parsed = JSON.parse(text);
-        const incoming = parsed && parsed.data ? parsed.data : parsed;
-        if (!incoming || typeof incoming !== "object") throw new Error("Invalid file");
-        COLLECTIONS.forEach(name => {
-          if (Array.isArray(incoming[name])) { data[name] = incoming[name]; persist(name); }
-        });
-        if (typeof parsed.marketingNotes === "string") {
-          marketingNotes = parsed.marketingNotes;
-          saveMarketingNotes(marketingNotes);
+        const incoming = OpsIntegrity.validateBackup(parsed);
+        const settings = parsed.settings || {};
+        // Validate structured settings before writing anything.
+        if (settings[BUSINESS_INFO_KEY]) {
+          const info = JSON.parse(settings[BUSINESS_INFO_KEY]);
+          if (!info || ["name", "contact", "payment"].some(k => typeof info[k] !== "string")) throw new Error("Invalid business information");
         }
-        if (typeof parsed.dashboardNotes === "string") {
-          saveDashNotes(parsed.dashboardNotes);
-          $("#dashNotes").value = parsed.dashboardNotes;
+        if (settings[LAUNCH_KEY]) {
+          const state = JSON.parse(settings[LAUNCH_KEY]);
+          if (!state || Array.isArray(state) || typeof state !== "object" || Object.values(state).some(v => typeof v !== "boolean")) throw new Error("Invalid launch checklist");
         }
+        if (settings[LAUNCH_DATE_KEY] && !/^\d{4}-\d{2}-\d{2}$/.test(settings[LAUNCH_DATE_KEY])) throw new Error("Invalid launch date");
+        const entries = COLLECTIONS.filter(name => incoming[name] !== undefined).map(name => [STORE_PREFIX + name, JSON.stringify(incoming[name])]);
+        BACKUP_SETTING_KEYS.forEach(key => { if (settings[key] !== undefined) entries.push([key, settings[key]]); });
+        if (typeof parsed.marketingNotes === "string") entries.push([NOTES_KEY, parsed.marketingNotes]);
+        if (typeof parsed.dashboardNotes === "string") entries.push([DASH_NOTES_KEY, parsed.dashboardNotes]);
+        OpsIntegrity.writeTransaction(localStorage, entries);
+        clearTimeout(marketingNotesSaveTimer); clearTimeout(dashNotesSaveTimer); clearTimeout(businessInfoSaveTimer);
+        COLLECTIONS.forEach(name => { if (incoming[name] !== undefined) { data[name] = incoming[name]; savedCollections[name] = JSON.stringify(data[name]); } });
+        marketingNotes = loadMarketingNotes();
+        $("#planNotes").value = marketingNotes;
+        $("#dashNotes").value = loadDashNotes();
+        businessInfo = loadBusinessInfo();
+        $("#biName").value = businessInfo.name; $("#biContact").value = businessInfo.contact; $("#biPayment").value = businessInfo.payment;
+        launchState = loadLaunchState(); launchDate = loadLaunchDate(); marginTarget = loadMarginTarget();
+        $("#launchDateInput").value = launchDate; $("#marginTargetSelect").value = String(marginTarget);
+        confettiEnabled = loadConfettiSetting(); applyTheme(loadTheme());
+        setSidebarHidden(loadSidebarHidden());
         renderAll();
         showToast("Backup imported.");
       } catch {
-        showToast("Could not read that file. Expecting a Nail'd It! Operations backup (.json).", "warn");
+        showToast("Import failed. Check the backup format and available browser storage.", "warn");
       } finally {
         e.target.value = "";
       }
     });
 
     /* ===== INIT ===== */
+    /* Every supply order is mirrored into Expenses (category "Supplies", linked by
+       supplyOrderId), with its status in the notes. Runs on every render so
+       edits, status changes, deletes, and orders saved before this existed all reconcile. */
+    function syncSupplyOrderExpenses() {
+      let changed = false;
+      const linked = new Map(data.expenses.filter(e => e.supplyOrderId).map(e => [e.supplyOrderId, e]));
+      data.supplyOrders.forEach(o => {
+        const existing = linked.get(o.id);
+        const suppliers = [...new Set(o.items.map(l => OpsIntegrity.supplySnapshot(l, data.inventory).supplier).filter(Boolean))];
+        const fields = {
+          date: o.date, category: "Supplies", vendor: suppliers.join(", "),
+          amount: Math.round(soOrderTotal(o) * 100) / 100,
+          notes: `Supply order (${o.items.length} item${o.items.length === 1 ? "" : "s"}, ${o.status})`,
+        };
+        if (!existing) {
+          data.expenses.push({ id: uid(), supplyOrderId: o.id, ...fields });
+          changed = true;
+        } else if (Object.keys(fields).some(k => existing[k] !== fields[k])) {
+          Object.assign(existing, fields);
+          changed = true;
+        }
+      });
+      const keep = new Set(data.supplyOrders.map(o => o.id));
+      const before = data.expenses.length;
+      data.expenses = data.expenses.filter(e => !e.supplyOrderId || keep.has(e.supplyOrderId));
+      if (data.expenses.length !== before) changed = true;
+      if (changed) persist("expenses");
+    }
+
     function renderAll() {
+      let snapshotsChanged = false;
+      data.supplyOrders.forEach(order => { order.items = order.items.map(line => {
+        if (line.unitCost !== undefined && line.itemName !== undefined && line.supplier !== undefined) return line;
+        snapshotsChanged = true; return OpsIntegrity.supplySnapshot(line, data.inventory);
+      }); });
+      if (snapshotsChanged) persist("supplyOrders");
+      syncSupplyOrderExpenses();
       renderDashboard();
       renderLaunch();
       renderCalendarGrid();
@@ -4277,6 +4396,22 @@
     $("#biContact").value = businessInfo.contact;
     $("#biPayment").value = businessInfo.payment;
     showView(location.hash.slice(1) || "dashboard");
+
+    /* ===== EXTERNAL LINKS (Tauri) =====
+       Packaged in a Tauri window, target="_blank" links (Nail Club Plan, View Storefront)
+       silently do nothing — Tauri blocks new-window navigation unless routed through its
+       opener plugin. When running there, send them to the system's default browser instead. */
+    if (window.__TAURI__?.opener) {
+      document.addEventListener("click", e => {
+        const link = e.target.closest('a[target="_blank"]');
+        if (!link) return;
+        e.preventDefault();
+        window.__TAURI__.opener.openUrl(link.href).catch(err => {
+          console.error("Failed to open external link:", err);
+          showToast("Couldn't open that link.", "warn");
+        });
+      });
+    }
   </script>
 </body>
 </html>
