@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import express, { type Request, type Response, type NextFunction } from "express";
-import { getStore } from "./store";
+import { getStore, type Order, type Store } from "./store";
 
 // Nail'd Ops on the web: the same app as the desktop version, served at /ops behind a password.
 // Its data (normally kept only on the PC) is saved to the shared store instead, so it works from
@@ -118,6 +118,52 @@ function syncShim(state: Record<string, string>) {
 </script>`;
 }
 
+// Paid store orders (saved by the Stripe webhook) are added to Ops' own Orders list the next time
+// Ops opens, once each, so they can be tracked and edited like any other order.
+const OPS_ORDERS = "naildit-ops-orders";
+const IMPORTED = "naildit-ops-imported-store-orders";
+
+function toOpsOrder(o: Order) {
+  const custom = Object.entries(o.metadata ?? {}).filter(([k]) => k.startsWith("custom_")).map(([, v]) => v);
+  const ship = (o.shipping ?? null) as { name?: string; address?: Record<string, string | null> } | null;
+  const address = ship?.address ? [ship.address.line1, ship.address.line2, ship.address.city, ship.address.state, ship.address.postal_code].filter(Boolean).join(", ") : "";
+  const placed = o.createdAt.slice(0, 10);
+  const due = new Date(o.createdAt);
+  due.setDate(due.getDate() + 7);
+  return {
+    id: o.id,
+    customer: ship?.name || o.name || o.email || "Store customer",
+    contact: o.email ?? "",
+    items: o.items.map((i) => `${i.name ?? "Item"} x${i.quantity ?? 1}`).join(", "),
+    total: o.total != null ? o.total / 100 : 0,
+    status: "New",
+    orderDate: placed,
+    dueDate: due.toISOString().slice(0, 10),
+    ...(custom.length ? { isCustom: true } : {}),
+    notes: [address && `Ship to: ${address}`, ...custom.map((c) => `Custom: ${c}`), "Paid online through the store."].filter(Boolean).join("\n"),
+  };
+}
+
+async function importStoreOrders(store: Store, state: Record<string, string>) {
+  const paid = (await store.listOrders()).filter((o) => o.paid);
+  if (!paid.length) return state;
+  const parse = <T>(raw: string | undefined, fallback: T): T => {
+    try {
+      return raw ? (JSON.parse(raw) as T) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+  const imported = new Set(parse<string[]>(state[IMPORTED], []));
+  const fresh = paid.filter((o) => !imported.has(o.id)).reverse();
+  if (!fresh.length) return state;
+  const orders = parse<unknown[]>(state[OPS_ORDERS], []);
+  const next = { ...state, [OPS_ORDERS]: JSON.stringify([...fresh.map(toOpsOrder), ...(Array.isArray(orders) ? orders : [])]), [IMPORTED]: JSON.stringify([...Array.from(imported), ...fresh.map((o) => o.id)]) };
+  await store.setState(OPS_ORDERS, next[OPS_ORDERS]);
+  await store.setState(IMPORTED, next[IMPORTED]);
+  return next;
+}
+
 const IMAGE_TYPES: Record<string, string> = { ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".avif": "image/avif" };
 
 export function opsApp(opsDir: string) {
@@ -192,7 +238,7 @@ export function opsApp(opsDir: string) {
     } catch {
       return res.status(503).send("Nail'd Ops hasn't been added to this server yet.");
     }
-    const shim = syncShim(await store.getState());
+    const shim = syncShim(await importStoreOrders(store, await store.getState()));
     html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (m) => `${m}\n${shim}`) : shim + html;
     res.type("html").send(html);
   });
