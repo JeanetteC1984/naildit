@@ -5,9 +5,9 @@ import { BagDrawer, OrderConfirmation, useBag, type OrderSummary } from "@/compo
 import { SiteFooter } from "@/components/SiteFooter";
 
 const moods = [
-  { name: "Wild for Wildflowers", kicker: "Bloom loud", text: "Hand-painted florals over hot pink, glitter accents included.", tone: "hot", product: "Wild for Wildflowers" },
-  { name: "Love Letters", kicker: "Write it in red", text: "Romantic red with hand-stamped linework and a glitter accent nail.", tone: "plum", product: "Love Letters" },
-  { name: "Golden Afternoon", kicker: "Catch the light", text: "Warm foil, chrome gold, and reflective florals for golden hour.", tone: "gold", product: "Golden Afternoon" },
+  { name: "Wild for Wildflowers", kicker: "Bloom out loud", text: "Hand-painted florals on hot pink with a hit of glitter. Spring energy, any season.", tone: "hot", product: "Wild for Wildflowers" },
+  { name: "Love Letters", kicker: "Sealed with a kiss", text: "Romantic red, hand-stamped linework, and one glitter accent nail that steals the show.", tone: "plum", product: "Love Letters" },
+  { name: "Golden Afternoon", kicker: "Glow all day", text: "Warm foil, chrome gold, and reflective florals that catch every bit of golden-hour light.", tone: "gold", product: "Golden Afternoon" },
 ];
 
 // Cover art for each collection card, by collection name. Kept here rather than in
@@ -17,6 +17,7 @@ const collectionCovers: Record<string, string> = {
   "love letters": "/collections/love-letters-cover.png",
   "golden afternoon": "/collections/golden-afternoon-cover.png",
   "halloween": "/collections/halloween-cover.png",
+  "zodiac": "/collections/zodiac-cover.webp",
 };
 
 const products = [
@@ -343,7 +344,7 @@ export default function Home() {
   return <div className="site-shell">
     {toast && <div className="toast"><Sparkles size={16} /> {toast}</div>}
     <header className="site-header">
-      <a className="wordmark" href="#top" aria-label="Nail'd It home"><img src="/logo-wordmark.png" alt="Nail'd It!" /></a>
+      <a className="wordmark" href="#top" aria-label="Nail'd It home"><img src="/logo-neon-wordmark.webp" alt="Nail'd It!" /></a>
       <nav className="main-nav">
         <a href="#shop">Shop by vibe</a><a href="#collection">All sets</a><a href="#custom">Custom order</a><a href="#ritual">The ritual</a><a href="#gallery">Gallery</a><a href="#story">Our story</a>
       </nav>
@@ -354,17 +355,17 @@ export default function Home() {
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">Press on. Stand out.</p>
-          <h1>Your next<br /><em>Favorite Detail</em><br />starts here.</h1>
-          <p className="hero-description">Hand-painted press-ons for every version of you — from soft and understated to impossible to ignore.</p>
+          <h1>Nail it.<br /><em>Every Time.</em><br />No salon required.</h1>
+          <p className="hero-description">Hand-painted press-ons built to be noticed — pop them on in minutes and walk out glowing.</p>
           <div className="hero-actions"><a className="primary-button" href="#shop">Shop by vibe <ArrowDownRight size={18} /></a><button className="secondary-button" onClick={() => setQuizOpen(true)}>Find my set <Sparkles size={17} /></button></div>
           <div className="hero-proof"><span>30 nails</span><span>12 sizes</span><span>0 boring details</span></div>
         </div>
-        <div className="hero-art"><div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-image"><img src="/wildflower-hero.png" alt="Pink glitter press-on nails with hand-painted floral accents" /></div><div className="hero-note"><strong>Current vibe</strong><b>Impossible<br />to ignore.</b></div><div className="hero-sticker"><img src="/logo-polish-duo.webp" alt="" /></div></div>
+        <div className="hero-art"><div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-image"><img src="/wildflower-hero.png" alt="Pink glitter press-on nails with hand-painted floral accents" /></div><div className="hero-note"><strong>Current vibe</strong><b>Impossible<br />to ignore.</b></div></div>
       </section>
 
-      <section className="ticker" aria-label="Brand benefits"><div className="ticker-track"><div>Hand-Painted Details</div><div>12-Size Fit</div><div>Vibes Welcome</div><div>No Boring Nails</div><div>Hand-Painted Details</div><div>12-Size Fit</div><div>Vibes Welcome</div><div>No Boring Nails</div></div></section>
+      <section className="ticker" aria-label="Brand benefits"><div className="ticker-track"><div>Hand-Painted Details</div><div>12-Size Fit</div><div>On in Minutes</div><div>Nail’d It, Every Time</div><div>Hand-Painted Details</div><div>12-Size Fit</div><div>On in Minutes</div><div>Nail’d It, Every Time</div></div></section>
 
-      <section className="mood-section" id="shop"><div className="mood-intro-row"><div className="section-intro"><p className="eyebrow">Find your feeling</p><h2>Shop the vibe,<br /><em>Not the Rulebook.</em></h2><p>Each collection holds a handful of sets that share one theme. Click a card to flip it, then open the collection to shop its sets.</p></div><img className="mood-logo" src="/logo-disco-nails.webp" alt="Neon hand with long pink nails holding a disco ball" /></div><div className="mood-grid">{moods.map((m) => {
+      <section className="mood-section" id="shop"><div className="mood-intro-row"><div className="section-intro"><p className="eyebrow">Pick your mood</p><h2>Match the mood,<br /><em>Then Nail It.</em></h2><p>Every collection is built around one vibe. Flip a card to peek inside, then tap through to shop the sets that light you up.</p></div></div><div className="mood-grid">{moods.map((m) => {
         const flipped = flippedMoods.has(m.name);
         const sets = setsIn(m);
         const cover = collectionCovers[m.name.toLowerCase()];
@@ -388,9 +389,9 @@ export default function Home() {
         </div>;
       })}</div></section>
 
-      <section className="collection-section" id="collection"><div className="collection-header"><img className="collection-logo" src="/logo-heart-nails.webp" alt="Neon heart with a hand painting its long pink nails" /><div><p className="eyebrow">The launch drop</p><h2>Meet your <em>New Vibe.</em></h2><p className="collection-description">Hand-painted florals, glossy stamped detail, and warm chrome gold — three sets to start the drop.</p></div></div><div className="filter-row">{["All sets", ...Array.from(new Set(products.map((p) => p.mood)))].map((m) => <button key={m} className={activeMood === m ? "filter active" : "filter"} onClick={() => setActiveMood(m)}>{m}</button>)}</div><div className="product-grid">{visibleProducts.map((p) => <ProductCard key={p.name} product={p} onAdd={addToBag} onOpen={setQuickViewProduct} />)}</div>{visibleProducts.length === 0 && <div className="empty-state">That vibe is taking a tiny break. Try another feeling.</div>}</section>
+      <section className="collection-section" id="collection"><div className="collection-header"><div><p className="eyebrow">The launch drop</p><h2>Meet your <em>New Vibe.</em></h2><p className="collection-description">Hand-painted florals, glossy stamped detail, and warm chrome gold — three sets to start the drop.</p></div></div><div className="filter-row">{["All sets", ...Array.from(new Set(products.map((p) => p.mood)))].map((m) => <button key={m} className={activeMood === m ? "filter active" : "filter"} onClick={() => setActiveMood(m)}>{m}</button>)}</div><div className="product-grid">{visibleProducts.map((p) => <ProductCard key={p.name} product={p} onAdd={addToBag} onOpen={setQuickViewProduct} />)}</div>{visibleProducts.length === 0 && <div className="empty-state">That vibe is taking a tiny break. Try another feeling.</div>}</section>
 
-      <section className="custom-section" id="custom"><div className="custom-intro-row"><div className="section-intro"><p className="eyebrow">One of a kind</p><h2>Design your <em>Own Set.</em></h2><p>Pick your shape, finish, and base color, then tell us your vision. Every custom set is made to order at an upgraded price.</p></div><img className="custom-logo" src="/logo-moon-nails.webp" alt="Neon hand with long pink nails under a crescent moon and sparkles" /></div>
+      <section className="custom-section" id="custom"><div className="custom-intro-row"><div className="section-intro"><p className="eyebrow">One of a kind</p><h2>Design your <em>Own Set.</em></h2><p>Pick your shape, finish, and base color, then tell us your vision. Every custom set is made to order at an upgraded price.</p></div></div>
         <div className="custom-panel">
           <div className="custom-info">
             <span className="product-badge">Made to order</span>
@@ -410,7 +411,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="ritual-section" id="ritual"><div className="ritual-image"><img src="/products/spider-ritual.png" alt="Hand wearing the Spidergirl Lives! Halloween press-on nails" /><span className="vertical-label">THE NAIL’D IT! RITUAL</span></div><div className="ritual-copy"><img className="ritual-logo" src="/logo-skeleton-hand.png" alt="Neon skeleton hand holding a nail polish bottle" /><p className="eyebrow">Your manicure, simplified</p><h2>Prep.<br /><em>Press.</em><br />Impress.</h2><p>Salon appointments mean chemical fumes, sticky discomfort, and an hour-plus in the chair — just to chip a week later. An instant mani gets you the same fresh-set look in minutes, with way less commitment. Choose the best fit, follow the adhesive instructions, and let the set do the rest.</p><div className="ritual-steps"><div><b>01</b><span>Find your fit</span></div><div><b>02</b><span>Prep & press</span></div><div><b>03</b><span>Show them off</span></div></div><a className="arrow-link" href="#story">Read the full ritual <ChevronRight size={18} /></a></div></section>
+      <section className="ritual-section" id="ritual"><div className="ritual-image"><img src="/products/spider-ritual.png" alt="Hand wearing the Spidergirl Lives! Halloween press-on nails" /><span className="vertical-label">THE NAIL’D IT! RITUAL</span></div><div className="ritual-copy"><p className="eyebrow">Your manicure, simplified</p><h2>Prep.<br /><em>Press.</em><br />Impress.</h2><p>Salon appointments mean chemical fumes, sticky discomfort, and an hour-plus in the chair — just to chip a week later. An instant mani gets you the same fresh-set look in minutes, with way less commitment. Choose the best fit, follow the adhesive instructions, and let the set do the rest.</p><div className="ritual-steps"><div><b>01</b><span>Find your fit</span></div><div><b>02</b><span>Prep & press</span></div><div><b>03</b><span>Show them off</span></div></div><a className="arrow-link" href="#story">Read the full ritual <ChevronRight size={18} /></a></div></section>
 
       <section className="gallery-section" id="gallery"><div className="section-intro"><p className="eyebrow">Real sets, real hands</p><h2>The <em>gallery.</em></h2><p>A closer look at the collection. Swipe or use the arrows to explore, and select a photo to see every detail.</p></div><GalleryCarousel photos={publishedPhotos} onOpen={setLightboxIndex} /></section>
 

@@ -22,7 +22,7 @@
       "mood": "Love Letters",
       "detail": "Romantic red · glossy almond",
       "image": "/products/love-letters-box.png",
-      "accent": "#d92059",
+      "accent": "#ff0000",
       "badge": "New drop",
       "description": "Classic red with a love-note twist. Hand-drawn hearts, envelopes, and lace-like filigree sit alongside ruby glitter accents — made for anniversaries, date nights, and everyday romance.",
       "gallery": [
@@ -58,11 +58,11 @@
       "name": "Spidergirl Lives!",
       "price": "$24",
       "mood": "Halloween",
-      "detail": "Halloween themed set that focuses on our eight legged friends.",
+      "detail": "Spiderwebs & blood red · black stiletto",
       "image": "/products/spider1.png",
-      "accent": "#f445a1",
+      "accent": "#f5f5f5",
       "badge": "New drop",
-      "description": "This is a test to see if the product addition works the way it should",
+      "description": "Glossy black meets blood red in a web you'll want to get caught in. Hand-stamped spiderwebs, a crawling black spider, rhinestone accents, and a hand-lettered Halloween nail — made for haunted houses, costume parties, and every night of spooky season.",
       "gallery": [
         "/products/spider2.png",
         "/products/spider3.png",
@@ -74,11 +74,11 @@
       "name": "Leaves of Change",
       "price": "$24",
       "mood": "Golden Afternoon",
-      "detail": "Hand stamped leaves falling ",
+      "detail": "Hand-stamped leaves · evergreen & gold",
       "image": "/products/fallnailscut-1-copy.png",
       "accent": "#203206",
       "badge": "New drop",
-      "description": "The leaves fall as they change to the golden representation shown in the nails",
+      "description": "Deep evergreen with hand-stamped gold leaves drifting across each nail. A copper-and-red foliage accent, a gold-dipped tip, and a full chrome gold nail bring the turn of the season right to your fingertips.",
       "gallery": [
         "/products/fallnailscut-1-copy.png",
         "/products/fallnailscut-3.png",
@@ -89,13 +89,29 @@
       "name": "Bump in the Night",
       "price": "$24",
       "mood": "Halloween",
-      "detail": "Halloween themed set that focuses on ghosts.",
+      "detail": "Ghosts & glitter · midnight almond",
       "image": "/products/ghostnailscut-1-copy.png",
-      "accent": "#f445a1",
+      "accent": "#f47843",
       "badge": "New drop",
-      "description": "scary and spectacular",
+      "description": "Midnight purple shimmer, smoky silver, and glossy black, haunted by hand-stamped ghosts, a skull and crossbones, a glowing green eye, and a little BOO. Scary, spectacular, and just the right amount of trouble after dark.",
       "gallery": [
         "/products/ghostnailscut-1.png"
+      ]
+    },
+    {
+      "name": "Balanced in Blue",
+      "price": "$24",
+      "mood": "Zodiac",
+      "detail": "Cobalt paisley & gold stars · Libra",
+      "image": "/products/libra-box.webp",
+      "accent": "#006eb3",
+      "badge": "New drop",
+      "description": "Cobalt paisley, porcelain-lace florals, and a hand-lettered Libra glyph, finished with gold star charms over deep navy. A set built on balance, beauty, and harmony — made for Libra season and anyone who keeps everything in perfect measure.",
+      "gallery": [
+        "/products/libra-box.webp",
+        "/products/libra-1.webp",
+        "/products/libra-2.webp",
+        "/products/libra-3.webp"
       ]
     }
   ],
@@ -127,6 +143,13 @@
       "text": "What lies behind the veil?",
       "tone": "gold",
       "product": "Halloween"
+    },
+    {
+      "name": "Zodiac",
+      "kicker": "Written in the stars",
+      "text": "Sets inspired by your sign, starting with Libra.",
+      "tone": "plum",
+      "product": "Zodiac"
     }
   ]
 }
