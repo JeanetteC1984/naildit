@@ -114,6 +114,19 @@ function syncShim(state: Record<string, string>) {
   Storage.prototype.removeItem = function(k){ var r = removeItem.call(this, k); if (this === ls) queue(k, null); return r; };
   window.addEventListener("beforeunload", function(){ if (Object.keys(pending).length) navigator.sendBeacon("/ops/api/state", new Blob([JSON.stringify(pending)], { type: "application/json" })); });
   window.__NAILDIT_OPS_WEB__ = true;
+  // The desktop app publishes through two Tauri commands. Answer them here so the same
+  // "Publish to Storefront" button (and its automatic publish on every product save) updates the live store.
+  window.__TAURI__ = { core: { invoke: function(cmd, args){
+    if (cmd === "publish_catalog") {
+      return fetch("/ops/api/publish", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin", body: JSON.stringify({ catalog: JSON.parse(args.json) }) })
+        .then(function(r){ if (!r.ok) throw new Error(r.status === 401 ? "signed out, reload to sign in" : "server error " + r.status); });
+    }
+    if (cmd === "import_image") return Promise.reject("photos from your PC can't be published from the website yet; use a /products/... photo path");
+    return Promise.reject("not available on the website");
+  } } };
+  document.addEventListener("DOMContentLoaded", function(){
+    document.querySelectorAll('a[href^="http://localhost:3000"]').forEach(function(a){ a.setAttribute("href", "/"); });
+  });
 })();
 </script>`;
 }
