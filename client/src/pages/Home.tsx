@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Heart, Sparkles, X } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { BagDrawer, OrderConfirmation, useBag, type OrderSummary } from "@/components/BagDrawer";
@@ -10,15 +10,22 @@ const moods = [
   { name: "Golden Afternoon", kicker: "Glow all day", text: "Warm foil, chrome gold, and reflective florals that catch every bit of golden-hour light.", tone: "gold", product: "Golden Afternoon" },
 ];
 
-// Cover art for each collection card, by collection name. Kept here rather than in
-// ops-products.json so publishing from the Operations app doesn't drop them.
-const collectionCovers: Record<string, string> = {
-  "wild for wildflowers": "/collections/wildflowers-cover.png",
-  "love letters": "/collections/love-letters-cover.png",
-  "golden afternoon": "/collections/golden-afternoon-cover.png",
-  "halloween": "/collections/halloween-cover.png",
-  "zodiac": "/collections/zodiac-cover.webp",
-};
+// Polish colors for the fan of nails on each collection card: the collection's own set colors,
+// topped up with lighter and deeper shades of its main color and one tone accent so every card shows five.
+const toneAccent: Record<string, string> = { hot: "#27e7f5", plum: "#d6a4ff", gold: "#fff1c2", cream: "#ffb3d1" };
+function mixHex(a: string, b: string, t: number) {
+  const ch = (h: string) => [0, 2, 4].map((i) => parseInt(h.replace("#", "").slice(i, i + 2), 16));
+  const [x, y] = [ch(a), ch(b)];
+  return "#" + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join("");
+}
+function polishFan(tone: string, accents: string[]) {
+  const colors = Array.from(new Set(accents.map(readableAccent))).filter((c) => /^#[0-9a-f]{6}$/i.test(c));
+  const base = colors[0] ?? "#ff3295";
+  const fill = [mixHex(base, "#ffffff", 0.45), toneAccent[tone] ?? "#27e7f5", mixHex(base, "#000000", 0.3), mixHex(base, "#ffffff", 0.75)];
+  for (const c of fill) if (colors.length < 5) colors.push(c);
+  if (!colors.length) colors.push(base);
+  return colors.slice(0, 5);
+}
 
 const products = [
   {
@@ -368,21 +375,20 @@ export default function Home() {
       <section className="mood-section" id="shop"><div className="mood-intro-row"><div className="section-intro"><p className="eyebrow">Pick your mood</p><h2>Match the mood,<br /><em>Then Nail It.</em></h2><p>Every collection is built around one vibe. Flip a card to peek inside, then tap through to shop the sets that light you up.</p></div></div><div className="mood-grid">{moods.map((m) => {
         const flipped = flippedMoods.has(m.name);
         const sets = setsIn(m);
-        const cover = collectionCovers[m.name.toLowerCase()];
+        const polish = polishFan(m.tone, sets.map((p) => p.accent));
         const accent = sets[0] ? readableAccent(sets[0].accent) : undefined;
         const titleStyle = accent ? { color: accent, animation: "none", textShadow: `0 0 3px ${accent}, 0 0 10px ${accent}cc, 0 0 22px ${accent}80` } : undefined;
         return <div key={m.name} className={`mood-card-flip${flipped ? " is-flipped" : ""}`}>
           <div className="mood-card-inner">
-            <button type="button" className={`mood-card mood-card-face mood-${m.tone}${cover ? " has-cover" : ""}`} onClick={() => toggleFlip(m.name)} aria-label={`Flip ${m.name} card`}>
-              {cover && <img className="mood-cover" src={cover} alt="" />}
+            <button type="button" className={`mood-card mood-card-face mood-${m.tone} has-art`} style={{ "--glow": polish[0] } as CSSProperties} onClick={() => toggleFlip(m.name)} aria-label={`Flip ${m.name} card`}>
+              <span className="mood-nails" aria-hidden="true">{polish.map((c, i) => <i key={i} style={{ "--c": c, "--i": i } as CSSProperties} />)}</span>
               <span className="mood-set-count">{sets.length} {sets.length === 1 ? "set" : "sets"}</span>
               <span className="mood-kicker">{m.kicker}</span><strong style={titleStyle}>{m.name}</strong><span className="mood-copy">{m.text}</span><span className="mood-arrow"><ArrowUpRight size={20} /></span>
             </button>
-            <button type="button" className={`mood-card mood-card-face mood-card-back mood-${m.tone}`} onClick={() => setOpenCollection(m)} aria-label={`Shop the ${m.name} collection`}>
+            <button type="button" className={`mood-card mood-card-face mood-card-back mood-${m.tone} has-art`} style={{ "--glow": polish[0] } as CSSProperties} onClick={() => setOpenCollection(m)} aria-label={`Shop the ${m.name} collection`}>
               <span className="mood-back-count">{sets.length} {sets.length === 1 ? "set" : "sets"} in this collection</span>
-              <span className="mood-back-grid">{sets.slice(0, 5).map((p) => <img key={p.name} src={p.image} alt="" />)}</span>
+              <span className="mood-back-sets">{sets.slice(0, 5).map((p) => <span key={p.name}><i style={{ "--c": readableAccent(p.accent) } as CSSProperties} />{p.name}</span>)}{sets.length > 5 && <span>+{sets.length - 5} more</span>}</span>
               <strong style={titleStyle}>Shop the collection</strong>
-              <span className="mood-copy">{sets.map((p) => p.name).join(" · ")}</span>
               <span className="mood-arrow"><Sparkles size={20} /></span>
             </button>
           </div>
