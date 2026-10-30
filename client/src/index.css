@@ -167,9 +167,9 @@ button,a,input { font:inherit; } button { cursor:pointer; } a { color:inherit; t
 .mood-card.has-cover>.mood-set-count,.mood-card.has-cover>.mood-arrow { position:absolute; }
 .mood-card.has-cover .mood-copy { color:#e4e0ee; }
 .mood-card.has-cover>.mood-set-count { background:rgba(3,3,4,.75); }
-.collection-header { justify-content:space-between; align-items:center; text-align:right; }
+.collection-header { justify-content:space-between; align-items:center; text-align:left; }
 .collection-logo { width:clamp(190px,21vw,280px); height:auto; flex-shrink:0; }
-.collection-header .collection-description { margin:18px 0 0 auto; }
+.collection-header .collection-description { margin:18px 0 0; }
 @media (max-width:900px){.collection-header{text-align:left}.collection-header .collection-description{margin-left:0}.collection-logo{width:150px;margin-bottom:22px}}
 .collection-section { padding-top:56px; padding-bottom:64px; }
 .custom-section { padding-top:56px; }
@@ -268,3 +268,38 @@ button,a,input { font:inherit; } button { cursor:pointer; } a { color:inherit; t
 .quickview-scroll::-webkit-scrollbar,.lightbox-scroll::-webkit-scrollbar,.collection-modal::-webkit-scrollbar { width:10px; }
 .quickview-scroll::-webkit-scrollbar-thumb,.lightbox-scroll::-webkit-scrollbar-thumb,.collection-modal::-webkit-scrollbar-thumb { border-width:3px; }
 .quickview-scroll::-webkit-scrollbar-track,.lightbox-scroll::-webkit-scrollbar-track,.collection-modal::-webkit-scrollbar-track { background:transparent; }
+
+/* Header logo: 10% smaller than the shared .wordmark size (footer unchanged) */
+.site-header .wordmark { width:137px; height:137px; }
+@media (max-width:560px){.site-header .wordmark{width:91px;height:91px}}
+/* Neon Nail'd It! wordmark is wide, so its header and footer boxes keep the old height but widen to fit */
+.wordmark { width:246px; }
+.site-header .wordmark { width:222px; }
+@media (max-width:560px){.wordmark{width:163px}.site-header .wordmark{width:147px}}
+/* Shopping-bag hero logo is wide: shrink it a touch so it sits inside the round badge */
+.hero-art .hero-sticker img { transform:scale(.88); }
+/* Product cards (grid + collection popup) use the site fonts: script titles like the mood cards and quick view, and one button font matching .primary-button */
+.product-title-row h3 { font:400 28px/1.05 'Sacramento',cursive; letter-spacing:0; }
+.add-button,.product-grid .product-card:nth-child(n) .add-button { font:800 12px 'Plus Jakarta Sans',sans-serif; letter-spacing:.1em; text-transform:uppercase; }
+/* Collection cards: no photos. Each card shows a fan of glossy press-on nails painted in the collection's own colors, over a slow glow. */
+.mood-card.has-art { isolation:isolate; }
+.mood-card.has-art::before { content:''; position:absolute; inset:-30%; z-index:-1; background:radial-gradient(circle at 75% 25%,color-mix(in srgb,var(--glow) 55%,transparent),transparent 40%),radial-gradient(circle at 20% 85%,color-mix(in srgb,var(--glow) 25%,transparent),transparent 45%); animation:mood-aurora 9s ease-in-out infinite alternate; pointer-events:none; }
+@keyframes mood-aurora { from { transform:translate(-4%,3%) rotate(0deg); } to { transform:translate(5%,-4%) rotate(14deg); } }
+.mood-nails { position:absolute; top:22px; right:12px; width:190px; height:150px; pointer-events:none; filter:drop-shadow(0 14px 18px rgba(0,0,0,.55)); }
+.mood-nails i { position:absolute; left:50%; bottom:8px; width:30px; height:84px; margin-left:-15px; border-radius:50% 50% 11px 11px / 64% 64% 11px 11px; background:linear-gradient(165deg,color-mix(in srgb,var(--c) 45%,#fff) 0%,var(--c) 32%,color-mix(in srgb,var(--c) 62%,#000) 100%); border:1px solid color-mix(in srgb,var(--c) 40%,#fff); box-shadow:0 0 12px color-mix(in srgb,var(--c) 70%,transparent),inset 0 -8px 12px rgba(0,0,0,.25); transform-origin:50% 150%; rotate:calc((var(--i) - 2) * 15deg); overflow:hidden; transition:rotate .45s var(--ease),translate .45s var(--ease); animation:nail-bob 3.6s ease-in-out infinite; animation-delay:calc(var(--i) * -.45s); }
+.mood-nails i::after { content:''; position:absolute; top:-20%; left:-60%; width:38%; height:140%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent); transform:skewX(-18deg); animation:nail-shine 4.5s ease-in-out infinite; animation-delay:calc(var(--i) * .25s); }
+.mood-nails::before,.mood-nails::after { content:'\2726'; position:absolute; color:#fff; font-size:16px; text-shadow:0 0 8px var(--glow),0 0 16px var(--glow); animation:glitter-twinkle 2.2s ease-in-out infinite; }
+.mood-nails::before { top:2px; left:18px; }
+.mood-nails::after { top:34px; right:4px; font-size:11px; animation-delay:-1.1s; }
+.mood-card.has-art:hover .mood-nails i { rotate:calc((var(--i) - 2) * 21deg); }
+@keyframes nail-bob { 0%,100% { translate:0 0; } 50% { translate:0 -6px; } }
+@keyframes nail-shine { 0%,55% { left:-60%; } 80%,100% { left:130%; } }
+.mood-back-sets { display:flex; flex-direction:column; gap:7px; margin-top:6px; }
+.mood-back-sets span { display:flex; align-items:center; gap:9px; color:var(--text); font:700 13px 'Plus Jakarta Sans',sans-serif; }
+.mood-back-sets i { flex:none; width:12px; height:20px; border-radius:50% 50% 4px 4px / 64% 64% 4px 4px; background:linear-gradient(165deg,color-mix(in srgb,var(--c) 45%,#fff),var(--c) 40%,color-mix(in srgb,var(--c) 62%,#000)); box-shadow:0 0 8px var(--c); }
+/* Shrink the fan on narrower cards so it never covers the card text. */
+.mood-card.has-art { container-type:inline-size; }
+.mood-nails { transform-origin:top right; }
+@container (max-width:400px){.mood-nails{scale:.8;top:14px}}
+@container (max-width:340px){.mood-nails{scale:.66;top:10px;right:6px}}
+@container (max-width:290px){.mood-nails{scale:.56}}
