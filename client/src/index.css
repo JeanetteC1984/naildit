@@ -297,4 +297,9 @@ button,a,input { font:inherit; } button { cursor:pointer; } a { color:inherit; t
 .mood-back-sets { display:flex; flex-direction:column; gap:7px; margin-top:6px; }
 .mood-back-sets span { display:flex; align-items:center; gap:9px; color:var(--text); font:700 13px 'Plus Jakarta Sans',sans-serif; }
 .mood-back-sets i { flex:none; width:12px; height:20px; border-radius:50% 50% 4px 4px / 64% 64% 4px 4px; background:linear-gradient(165deg,color-mix(in srgb,var(--c) 45%,#fff),var(--c) 40%,color-mix(in srgb,var(--c) 62%,#000)); box-shadow:0 0 8px var(--c); }
-@media (max-width:560px){.mood-nails{width:130px;height:104px;top:10px;right:6px}.mood-nails i{width:21px;height:58px;margin-left:-10.5px;bottom:6px}}
+/* Shrink the fan on narrower cards so it never covers the card text. */
+.mood-card.has-art { container-type:inline-size; }
+.mood-nails { transform-origin:top right; }
+@container (max-width:400px){.mood-nails{scale:.8;top:14px}}
+@container (max-width:340px){.mood-nails{scale:.66;top:10px;right:6px}}
+@container (max-width:290px){.mood-nails{scale:.56}}
