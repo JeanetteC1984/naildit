@@ -304,4 +304,4 @@ button,a,input { font:inherit; } button { cursor:pointer; } a { color:inherit; t
 @container (max-width:340px){.mood-nails{scale:.66;top:10px;right:6px}}
 @container (max-width:290px){.mood-nails{scale:.56}}
 /* Neon pattern wall behind "Design your own set" and "The Nail'd It! vibe", darkened so the text stays readable. */
-.custom-section,.story-section { background:linear-gradient(rgba(3,3,4,.66),rgba(3,3,4,.66)),radial-gradient(ellipse at center,transparent 35%,rgba(3,3,4,.55) 100%),url(/neon-vibe-bg.webp) center/cover no-repeat; }
+.custom-section,.story-section { background:linear-gradient(rgba(3,3,4,.62),rgba(3,3,4,.62)),radial-gradient(ellipse at center,transparent 30%,rgba(3,3,4,.55) 100%),url(/neon-vibe-bg.webp) center/cover no-repeat; }
