@@ -103,15 +103,16 @@
       "price": "$24",
       "mood": "Zodiac",
       "detail": "Cobalt paisley & gold stars · Libra",
-      "image": "/products/libra-box.webp",
+      "image": "/products/libra-mock-1.webp",
       "accent": "#006eb3",
       "badge": "New drop",
       "description": "Cobalt paisley, porcelain-lace florals, and a hand-lettered Libra glyph, finished with gold star charms over deep navy. A set built on balance, beauty, and harmony — made for Libra season and anyone who keeps everything in perfect measure.",
       "gallery": [
-        "/products/libra-box.webp",
-        "/products/libra-1.webp",
-        "/products/libra-2.webp",
-        "/products/libra-3.webp"
+        "/products/libra-mock-1.webp",
+        "/products/libra-mock-2.webp",
+        "/products/libra-mock-3.webp",
+        "/products/libra-mock-4.webp",
+        "/products/libra-mock-5.webp"
       ]
     }
   ],
