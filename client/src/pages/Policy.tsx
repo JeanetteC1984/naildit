@@ -23,7 +23,7 @@ function PolicyLayout({ eyebrow, title, accent, intro, children }: { eyebrow: st
 
   return <div className="site-shell">
     <header className="site-header">
-      <a className="wordmark" href="/#top" aria-label="Nail'd It home"><img src="/logo-wordmark.png" alt="Nail'd It!" /></a>
+      <a className="wordmark" href="/#top" aria-label="Nail'd It home"><img src="/logo-neon-wordmark.webp" alt="Nail'd It!" /></a>
       <nav className="main-nav">
         <a href="/#shop">Shop by vibe</a><a href="/#collection">All sets</a><a href="/#custom">Custom order</a><a href="/#ritual">The ritual</a><a href="/#gallery">Gallery</a><a href="/#story">Our story</a>
       </nav>

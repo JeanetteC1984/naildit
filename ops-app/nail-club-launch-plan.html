@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nail'd It! — Nail Club Launch Plan</title>
+<meta name="description" content="Internal launch plan for the Nail'd It! monthly Nail Club subscription — categories, product specs, and open decisions.">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="./assets-v2/logo-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sacramento&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #000000; --surface: #0d0e12; --surface-2: #141522;
+    --pink: #ff3295; --pink-light: #ffacd6; --cyan: #27e7f5; --violet: #9255ff; --yellow: #ffd34e; --green: #45e0a8; --red: #ff5c72;
+    --text: #faf6ff; --muted: #b2b7ca; --line: rgba(174,153,230,.22);
+    --radius: 20px;
+    --glass-bg: linear-gradient(155deg, rgba(30,26,44,.72), rgba(10,9,14,.78));
+    --glass-border: rgba(255,255,255,.1);
+    --glass-highlight: rgba(255,255,255,.06);
+    --ease: cubic-bezier(.23,1,.32,1);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: "Inter", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 8% 5%, rgba(146,85,255,.09), transparent 40%),
+      radial-gradient(ellipse at 95% 15%, rgba(255,50,149,.05), transparent 40%),
+      linear-gradient(180deg, #020202, #000000 70%);
+  }
+  h1, h2, h3, h4, p { margin-top: 0; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  .script { font-family: "Sacramento", cursive; font-weight: 400; }
+  .neon { text-shadow: 0 0 6px currentColor, 0 0 18px currentColor, 0 0 40px currentColor; }
+  ::selection { color: #fff; background: #a91d66; }
+  :focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(146,85,255,.35); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+
+  /* ===== Topbar ===== */
+  .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 2rem; background: rgba(3,3,4,.86); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+  .back-link { display: inline-flex; align-items: center; gap: .5rem; font-size: .82rem; font-weight: 700; color: var(--muted); padding: .5rem .9rem; border: 1px solid var(--line); border-radius: 10px; transition: color .2s, border-color .2s; }
+  .back-link:hover { color: var(--cyan); border-color: rgba(39,231,245,.4); }
+  .back-link svg { width: 15px; height: 15px; }
+  .topbar-brand { display: flex; align-items: center; gap: .7rem; font-weight: 800; letter-spacing: .02em; color: var(--muted); font-size: .78rem; text-transform: uppercase; }
+  .topbar-brand img { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(255,50,149,.35)); }
+  .status-pill { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .75rem; border-radius: 999px; background: rgba(255,211,78,.1); border: 1px solid rgba(255,211,78,.35); color: var(--yellow); font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 0 2rem 6rem; }
+
+  /* ===== Hero ===== */
+  .hero { padding: 4.5rem 0 3rem; text-align: center; }
+  .hero .eyebrow { color: var(--cyan); font-size: .72rem; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; margin-bottom: .9rem; }
+  .hero h1 { font-size: clamp(2.6rem, 6vw, 4.6rem); font-weight: 900; letter-spacing: -.03em; line-height: 1; color: var(--text); }
+  .hero h1 em { font-style: normal; display: block; font-family: "Sacramento", cursive; font-weight: 400; font-size: 1.35em; color: var(--pink-light); text-shadow: 0 0 10px rgba(255,50,149,.85), 0 0 34px rgba(255,50,149,.5); margin-top: .1em; }
+  .hero p { max-width: 620px; margin: 1.4rem auto 0; color: var(--muted); font-size: 1.02rem; }
+  .hero-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 2.2rem; margin-top: 2.4rem; }
+  .hero-stat b { display: block; font-size: 1.5rem; font-weight: 900; color: var(--text); }
+  .hero-stat span { display: block; margin-top: .2rem; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+  /* ===== Section scaffolding ===== */
+  section.block { padding: 3.2rem 0; border-top: 1px solid var(--line); }
+  .block-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 2rem; }
+  .block-head h2 { font-size: 1.7rem; font-weight: 900; letter-spacing: -.01em; }
+  .block-head h2 .num { color: var(--cyan); font-family: "Sacramento", cursive; font-weight: 400; font-size: 1.3em; margin-right: .3rem; }
+  .block-head p { color: var(--muted); font-size: .92rem; max-width: 480px; margin-top: .3rem; }
+
+  /* ===== Category grid ===== */
+  .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .cat-card { position: relative; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--glass-border); background: var(--glass-bg); backdrop-filter: blur(18px); padding: 1.6rem 1.5rem 1.5rem; display: flex; flex-direction: column; min-height: 230px; transition: transform .2s var(--ease), border-color .2s; }
+  .cat-card:hover { transform: translateY(-5px); border-color: var(--accent, var(--cyan)); }
+  .cat-card::before { content: ""; position: absolute; inset: 0; opacity: .16; background: radial-gradient(circle at 85% -10%, var(--accent, var(--pink)), transparent 60%); pointer-events: none; }
+  .cat-card .cat-month { position: relative; font-size: .64rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent, var(--cyan)); margin-bottom: .7rem; }
+  .cat-card h3 { position: relative; font-family: "Sacramento", cursive; font-weight: 400; font-size: 2.1rem; line-height: 1; color: var(--text); margin-bottom: .55rem; }
+  .cat-card .cat-tag { position: relative; display: inline-block; margin-bottom: .7rem; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent, var(--pink-light)); }
+  .cat-card p { position: relative; color: var(--muted); font-size: .84rem; line-height: 1.6; margin-top: auto; }
+
+  /* ===== Spec comparison ===== */
+  .spec-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--glass-border); }
+  table.spec { width: 100%; border-collapse: collapse; min-width: 620px; background: var(--surface); }
+  table.spec th, table.spec td { padding: .95rem 1.3rem; text-align: left; font-size: .86rem; border-bottom: 1px solid var(--line); }
+  table.spec thead th { background: var(--surface-2); font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  table.spec thead th.col-accent { color: var(--pink-light); }
+  table.spec tbody th { font-weight: 700; color: var(--muted); white-space: nowrap; }
+  table.spec tbody tr:last-child td, table.spec tbody tr:last-child th { border-bottom: 0; }
+  table.spec td.price { font-weight: 900; font-size: 1.05rem; color: var(--text); }
+  table.spec td.price small { display: block; font-weight: 600; font-size: .68rem; color: var(--muted); margin-top: .15rem; }
+  .flag { display: inline-flex; align-items: center; gap: .3rem; margin-top: .4rem; padding: .2rem .55rem; border-radius: 999px; background: rgba(255,211,78,.1); border: 1px solid rgba(255,211,78,.35); color: var(--yellow); font-size: .62rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+
+  /* ===== Inclusions ===== */
+  .kit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  .kit-item { border: 1px solid var(--glass-border); background: var(--glass-bg); border-radius: 16px; padding: 1.1rem 1rem; text-align: center; }
+  .kit-item .ico { width: 38px; height: 38px; margin: 0 auto .7rem; display: grid; place-items: center; border-radius: 50%; background: rgba(255,50,149,.1); border: 1px solid rgba(255,50,149,.3); color: var(--pink-light); }
+  .kit-item .ico svg { width: 18px; height: 18px; }
+  .kit-item b { display: block; font-size: .82rem; font-weight: 700; }
+  .kit-item span { display: block; margin-top: .25rem; font-size: .74rem; color: var(--muted); }
+  .kit-note { margin-top: 1.4rem; padding: 1rem 1.3rem; border-radius: 14px; background: rgba(39,231,245,.06); border: 1px solid rgba(39,231,245,.25); font-size: .84rem; color: var(--muted); }
+  .kit-note strong { color: var(--cyan); }
+
+  /* ===== Rotation calendar ===== */
+  .cal-track { display: grid; grid-template-columns: repeat(6, 1fr); gap: .8rem; }
+  .cal-cell { border: 1px solid var(--glass-border); background: var(--surface); border-radius: 14px; padding: 1rem .9rem; text-align: center; }
+  .cal-cell .m { font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .55rem; }
+  .cal-cell .c { font-family: "Sacramento", cursive; font-weight: 400; font-size: 1.25rem; color: var(--accent, var(--pink-light)); line-height: 1.1; }
+
+  /* ===== Decisions checklist ===== */
+  .decision-list { display: grid; gap: .7rem; }
+  .decision { display: flex; gap: .9rem; align-items: flex-start; padding: 1rem 1.2rem; border: 1px solid var(--glass-border); background: var(--glass-bg); border-radius: 14px; }
+  .decision .dot { flex-shrink: 0; width: 8px; height: 8px; margin-top: .45rem; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+  .decision b { display: block; font-size: .88rem; }
+  .decision p { margin-top: .25rem; font-size: .82rem; color: var(--muted); }
+
+  footer { padding: 2.5rem 2rem; text-align: center; color: var(--muted); font-size: .74rem; border-top: 1px solid var(--line); }
+
+  @media (max-width: 980px) {
+    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    .kit-grid { grid-template-columns: repeat(2, 1fr); }
+    .cal-track { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 640px) {
+    main { padding: 0 1.1rem 4rem; }
+    .cat-grid { grid-template-columns: 1fr; }
+    .kit-grid { grid-template-columns: 1fr 1fr; }
+    .cal-track { grid-template-columns: repeat(2, 1fr); }
+    .hero { padding: 3rem 0 2rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a class="back-link" href="./operations-v2.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to Operations
+    </a>
+    <div class="topbar-brand">
+      <img src="./assets-v2/logo-icon.png" alt="" onerror="this.remove()">
+      Nail'd It! Operations — Launch Plan
+    </div>
+    <span class="status-pill">Planning</span>
+  </div>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Internal Planning Document</p>
+      <h1>Monthly<br><em>Nail Club</em></h1>
+      <p>A rotating subscription of themed press-on collections — one drop a month, six recurring worlds to shop, built entirely around mix-and-match instant manis.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><b>6</b><span>Launch Categories</span></div>
+        <div class="hero-stat"><b>40+</b><span>Nails per Themed Set</span></div>
+        <div class="hero-stat"><b>12</b><span>Sizes Included</span></div>
+        <div class="hero-stat"><b>14</b><span>Days Wear</span></div>
+        <div class="hero-stat"><b>$25</b><span>Themed Set Price</span></div>
+      </div>
+    </section>
+
+    <section class="block" id="categories">
+      <div class="block-head">
+        <div>
+          <h2><span class="num">01</span>The Six Categories</h2>
+          <p>Every drop lives in one of these worlds. Suggested launch windows are flagged below for planning — final scheduling is still open.</p>
+        </div>
+      </div>
+      <div class="cat-grid">
+        <div class="cat-card" style="--accent: var(--pink-light)">
+          <span class="cat-month">Suggested · Spring</span>
+          <h3>Flower Power</h3>
+          <span class="cat-tag">Floral Designs</span>
+          <p>Hand-painted and pressed-floral inspired sets — the brand's signature mood, always in rotation.</p>
+        </div>
+        <div class="cat-card" style="--accent: var(--cyan)">
+          <span class="cat-month">Suggested · Evergreen / Always-On</span>
+          <h3>Simply Stunning</h3>
+          <span class="cat-tag">Colors &amp; French Tips</span>
+          <p>The staple set — solid colors and clean French tips for anyone who wants the wear without the artwork.</p>
+        </div>
+        <div class="cat-card" style="--accent: var(--violet)">
+          <span class="cat-month">Suggested · January or Rotating Monthly</span>
+          <h3>The Zodiac at Your Fingertips</h3>
+          <span class="cat-tag">Sun-Sign Sets</span>
+          <p>A design language built around the 12 signs — could ship as one mixed set or rotate sign-by-sign through the year.</p>
+        </div>
+        <div class="cat-card" style="--accent: #e3a62b">
+          <span class="cat-month">Suggested · September</span>
+          <h3>The Harvest</h3>
+          <span class="cat-tag">Fall Designs</span>
+          <p>Warm foils, amber tones, and autumn motifs — the seasonal bridge between summer and Hallows.</p>
+        </div>
+        <div class="cat-card" style="--accent: #ff7a1a">
+          <span class="cat-month">Suggested · October</span>
+          <h3>The Hallows</h3>
+          <span class="cat-tag">Halloween Themed</span>
+          <p>The year's biggest costume-adjacent drop — spooky, campy, and built for a whole month of outfit changes.</p>
+        </div>
+        <div class="cat-card" style="--accent: var(--red)">
+          <span class="cat-month">Suggested · Summer</span>
+          <h3>Wild N' Out</h3>
+          <span class="cat-tag">Bold Patterns &amp; Fun Sets</span>
+          <p>For the wild at heart — loud patterns, clashing color, maximum personality.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="specs">
+      <div class="block-head">
+        <div>
+          <h2><span class="num">02</span>Product Specs</h2>
+          <p>Two tiers cover all six categories: the full themed sets, and the simpler Simply Stunning basics.</p>
+        </div>
+      </div>
+      <div class="spec-wrap">
+        <table class="spec">
+          <thead>
+            <tr>
+              <th>Spec</th>
+              <th class="col-accent">Themed Sets<br><span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)">Flower Power · Zodiac · Harvest · Hallows · Wild N' Out</span></th>
+              <th>Simply Stunning<br><span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)">Colors &amp; French Tips</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Nail count</th>
+              <td>40+ nails per set</td>
+              <td>24 nails per set</td>
+            </tr>
+            <tr>
+              <th scope="row">Sizes</th>
+              <td>12 sizes included</td>
+              <td>12 sizes included</td>
+            </tr>
+            <tr>
+              <th scope="row">Design variety</th>
+              <td>Multiple designs per set — mix &amp; match for instant manis</td>
+              <td>Solid colors + French tip options — mix &amp; match capable</td>
+            </tr>
+            <tr>
+              <th scope="row">Wear time</th>
+              <td>Up to 14 days — change often for expression</td>
+              <td>Up to 14 days</td>
+            </tr>
+            <tr>
+              <th scope="row">Price</th>
+              <td class="price">$25<small>per themed set</small></td>
+              <td class="price">TBD<small>lower nail count — needs a price decision, see below</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="kit">
+      <div class="block-head">
+        <div>
+          <h2><span class="num">03</span>What's In Every Set</h2>
+          <p>Same care kit across every category, plus one gift themed to that month's drop.</p>
+        </div>
+      </div>
+      <div class="kit-grid">
+        <div class="kit-item"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 5-4 4-4-4 1-5Z"/><path d="M9 3 5 21h14L15 3"/></svg></div><b>Nail Glue</b><span>Full-strength bond</span></div>
+        <div class="kit-item"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="6" rx="1"/></svg></div><b>Travel File</b><span>On-the-go shaping</span></div>
+        <div class="kit-item"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="16" rx="2"/></svg></div><b>Nail Prep Pad</b><span>Cleans &amp; preps</span></div>
+        <div class="kit-item"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 3 5 6 5 9a5 5 0 0 1-10 0c0-3 2-6 5-9Z"/></svg></div><b>Cuticle Oil Mini</b><span>Travel-size</span></div>
+        <div class="kit-item"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></div><b>Hand Cream</b><span>Finishing touch</span></div>
+        <div class="kit-item"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/></svg></div><b>Lint-Free Pads</b><span>Streak-free prep</span></div>
+        <div class="kit-item"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9M2 7h20v5H2z"/><path d="M12 22V7M12 7c-2 0-4-1-4-3.2A1.8 1.8 0 0 1 9.8 2C12 2 12 7 12 7Zm0 0c2 0 4-1 4-3.2A1.8 1.8 0 0 0 14.2 2C12 2 12 7 12 7Z"/></svg></div><b>Free Themed Gift</b><span>Different every drop</span></div>
+        <div class="kit-item"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 12 3 4 7v10l8 4 8-4V7Z"/></svg></div><b>Reusable Packaging</b><span>Cute enough to keep</span></div>
+      </div>
+      <p class="kit-note"><strong>Every set is mix-and-match capable</strong> — the value prop is one box, multiple manis. Reusable packaging keeps the "collect them all" feel across categories without adding to the waste pile.</p>
+    </section>
+
+    <section class="block" id="calendar">
+      <div class="block-head">
+        <div>
+          <h2><span class="num">04</span>Suggested Rotation</h2>
+          <p>A first-pass yearly map — Simply Stunning stays live as the always-available staple alongside whichever themed drop is live that month.</p>
+        </div>
+      </div>
+      <div class="cal-track">
+        <div class="cal-cell" style="--accent: var(--violet)"><div class="m">Jan</div><div class="c">Zodiac</div></div>
+        <div class="cal-cell" style="--accent: var(--cyan)"><div class="m">Feb–Mar</div><div class="c">Simply Stunning</div></div>
+        <div class="cal-cell" style="--accent: var(--pink-light)"><div class="m">Apr–May</div><div class="c">Flower Power</div></div>
+        <div class="cal-cell" style="--accent: var(--red)"><div class="m">Jun–Jul</div><div class="c">Wild N' Out</div></div>
+        <div class="cal-cell" style="--accent: #e3a62b"><div class="m">Sep</div><div class="c">The Harvest</div></div>
+        <div class="cal-cell" style="--accent: #ff7a1a"><div class="m">Oct</div><div class="c">The Hallows</div></div>
+      </div>
+    </section>
+
+    <section class="block" id="decisions">
+      <div class="block-head">
+        <div>
+          <h2><span class="num">05</span>Open Decisions</h2>
+          <p>What still needs a call before this can go on the Launch Runway checklist.</p>
+        </div>
+      </div>
+      <div class="decision-list">
+        <div class="decision"><span class="dot"></span><div><b>Simply Stunning price point</b><p>24 nails vs. 40+ in the themed sets — needs its own price rather than inheriting the $25 themed-set price.</p></div></div>
+        <div class="decision"><span class="dot"></span><div><b>Zodiac format</b><p>One mixed 12-sign set, or a sign-by-sign rotation across the year? Changes both production and the rotation calendar above.</p></div></div>
+        <div class="decision"><span class="dot"></span><div><b>Free gift sourcing per theme</b><p>Six different themed gifts means six small-batch sourcing decisions — worth lining up suppliers before the first drop ships.</p></div></div>
+        <div class="decision"><span class="dot"></span><div><b>Reusable packaging design</b><p>Shared packaging system across categories, or a distinct box per theme? Affects unit cost and storage.</p></div></div>
+        <div class="decision"><span class="dot"></span><div><b>Subscription vs. one-off</b><p>Is Nail Club a recurring subscription (auto-ship monthly) or a themed collection customers opt into each month? Changes checkout, retention, and Marketing planning.</p></div></div>
+        <div class="decision"><span class="dot"></span><div><b>Rotation confirmation</b><p>The calendar above is a first pass — confirm against Inventory lead times before it's locked in.</p></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Nail'd It! — internal planning document. Not for customer distribution.</footer>
+
+</body>
+</html>
